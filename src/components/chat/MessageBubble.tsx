@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { UIMessage } from "ai";
 import ToolCallCard from "./ToolCallCard";
+import CollapsibleText from "./CollapsibleText";
 
 interface MessageBubbleProps {
   message: UIMessage;
@@ -41,9 +42,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           if (part.type === "text") {
             if (!part.text) return null;
             return isUser ? (
-              <p key={i} className="whitespace-pre-wrap">
-                {part.text}
-              </p>
+              <CollapsibleText key={i} text={part.text} fadeColor="#715A5A" />
             ) : (
               <ReactMarkdown
                 key={i}
