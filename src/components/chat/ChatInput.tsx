@@ -33,10 +33,10 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div style={{ background: "#2e2c35" }} className="px-4 py-4">
+    <div style={{ background: "var(--bg-base)" }} className="px-4 py-4">
       <div className="max-w-5xl w-full mx-auto">
         <div
-          style={{ background: "#37353E" }}
+          style={{ background: "var(--bg-surface-ai)" }}
           className="flex items-end gap-2 rounded-2xl px-4 py-2"
         >
           <textarea
@@ -47,8 +47,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             onKeyDown={handleKeyDown}
             placeholder="Nhắn tin..."
             disabled={disabled}
-            style={{ color: "#D3DAD9" }}
-            className="flex-1 bg-transparent text-sm placeholder:text-[#4a4852]
+            style={{ color: "var(--text-primary)" }}
+            className="flex-1 bg-transparent text-sm placeholder:text-[var(--text-muted)]
               resize-none outline-none py-1.5 max-h-40 leading-relaxed disabled:opacity-50"
           />
 
@@ -58,8 +58,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             aria-label="Gửi tin nhắn"
             style={
               !value.trim() || disabled
-                ? { background: "#44444E", color: "#9aa3a2" }
-                : { background: "#715A5A", color: "#D3DAD9" }
+                ? { background: "var(--bg-surface-ai)", color: "var(--text-muted)" }
+                : { background: "var(--bg-surface-user)", color: "var(--text-primary)" }
             }
             className="mb-1 w-8 h-8 rounded-full flex items-center justify-center shrink-0
               hover:brightness-110 disabled:cursor-not-allowed cursor-pointer transition-all"
@@ -73,9 +73,6 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             </svg>
           </button>
         </div>
-        <p style={{ color: "#9aa3a2" }} className="text-xs text-center mt-2">
-          Nhấn Enter để gửi, Shift+Enter xuống dòng
-        </p>
       </div>
     </div>
   );

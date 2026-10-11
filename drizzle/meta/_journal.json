@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791635019067,
+      "tag": "0000_eager_apocalypse",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791636882588,
+      "tag": "0001_previous_newton_destine",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791637275188,
+      "tag": "0002_spotty_starhawk",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,16 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { UIMessage } from "ai";
 import ToolCallCard from "./ToolCallCard";
+import { SlArrowDown } from "react-icons/sl";
+import { SlArrowUp } from "react-icons/sl";
 
 interface MessageBubbleProps {
   message: UIMessage;
 }
 
+const MAX_LENGTH_FOR_PREVIEW = 200;
+
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get text content from message parts
+  const textContent = message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => (part as { text: string }).text)
+    .join("");
+
+  const isLongMessage = isUser && textContent.length > MAX_LENGTH_FOR_PREVIEW;
+  const shouldCollapse = isLongMessage && !isExpanded;
 
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
@@ -18,8 +33,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       <div
         style={
           isUser
-            ? { background: "#715A5A", color: "#D3DAD9" }
-            : { background: "#44444E", color: "#D3DAD9" }
+            ? { background: "var(--bg-surface-user)", color: "var(--text-primary)" }
+            : { background: "var(--bg-surface-ai)", color: "var(--text-primary)" }
         }
         className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold"
       >
@@ -30,20 +45,37 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       <div
         style={
           isUser
-            ? { background: "#715A5A", color: "#D3DAD9", fontSize: "17px" }
-            : { background: "#44444E", color: "#D3DAD9", fontSize: "17px" }
+            ? { background: "var(--bg-surface-user)", color: "var(--text-primary)", fontSize: "17px" }
+            : { color: "var(--text-primary)", fontSize: "17px" }
         }
-        className={`px-4 py-3 rounded-2xl leading-relaxed
-          ${isUser ? "max-w-[90%] rounded-tr-sm" : "w-full rounded-tl-sm"}`}
+        className={`px-4 py-3 rounded-2xl leading-relaxed relative
+          ${isUser ? "max-w-[60%] rounded-tr-sm" : "w-full rounded-tl-sm"}`}
       >
         {message.parts.map((part, i) => {
           // Text part
           if (part.type === "text") {
             if (!part.text) return null;
             return isUser ? (
-              <p key={i} className="whitespace-pre-wrap">
-                {part.text}
-              </p>
+              <div key={i}>
+                <p className="whitespace-pre-wrap break-words overflow-hidden">
+                  {shouldCollapse
+                    ? part.text.slice(0, MAX_LENGTH_FOR_PREVIEW) + "..."
+                    : part.text}
+                </p>
+                {isLongMessage && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="absolute bottom-3 right-3 w-8 h-5 flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                    style={{
+                      color: "var(--text-primary)",
+                      background: "var(--bg-surface-user)",
+                      borderRadius: "6px"
+                    }}
+                  >
+                    {isExpanded ? <SlArrowUp size={14} /> : <SlArrowDown size={14} />}
+                  </button>
+                )}
+              </div>
             ) : (
               <ReactMarkdown
                 key={i}
@@ -84,7 +116,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   }) =>
                     inline ? (
                       <code
-                        style={{ background: "#37353E" }}
+                        style={{ background: "var(--bg-surface-ai)" }}
                         className="px-1.5 py-0.5 rounded text-[15px] font-mono"
                         {...props}
                       >
@@ -97,7 +129,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                     ),
                   pre: ({ children }) => (
                     <pre
-                      style={{ background: "#37353E" }}
+                      style={{ background: "var(--bg-surface-ai)" }}
                       className="p-3 rounded-lg overflow-x-auto text-[15px] font-mono mb-2"
                     >
                       {children}
@@ -111,11 +143,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                     </div>
                   ),
                   thead: ({ children }) => (
-                    <thead style={{ background: "#37353E" }}>{children}</thead>
+                    <thead style={{ background: "var(--bg-surface-ai)" }}>{children}</thead>
                   ),
                   th: ({ children }) => (
                     <th
-                      style={{ borderColor: "#715A5A" }}
+                      style={{ borderColor: "var(--bg-surface-user)" }}
                       className="border px-3 py-2 text-left font-semibold"
                     >
                       {children}
@@ -123,7 +155,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   ),
                   td: ({ children }) => (
                     <td
-                      style={{ borderColor: "#4a4852" }}
+                      style={{ borderColor: "var(--border)" }}
                       className="border px-3 py-2"
                     >
                       {children}
@@ -131,14 +163,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   ),
                   blockquote: ({ children }) => (
                     <blockquote
-                      style={{ borderColor: "#715A5A", color: "#9aa3a2" }}
+                      style={{ borderColor: "var(--bg-surface-user)", color: "var(--text-muted)" }}
                       className="border-l-4 pl-3 italic my-2"
                     >
                       {children}
                     </blockquote>
                   ),
                   hr: () => (
-                    <hr style={{ borderColor: "#4a4852" }} className="my-3" />
+                    <hr style={{ borderColor: "var(--border)" }} className="my-3" />
                   ),
                   strong: ({ children }) => (
                     <strong className="font-semibold">{children}</strong>
@@ -183,7 +215,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           return null;
         })}
 
-        <p style={{ color: "#9aa3a2" }} className="text-xs mt-1.5">
+        <p style={{ color: "var(--text-muted)" }} className="text-xs mt-1.5">
           {new Date().toLocaleTimeString("vi-VN", {
             hour: "2-digit",
             minute: "2-digit",

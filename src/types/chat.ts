@@ -7,4 +7,5 @@ export interface Conversation {
   title: string;
   messages: UIMessage[];
   createdAt: Date;
+  isPinned?: boolean;
 }

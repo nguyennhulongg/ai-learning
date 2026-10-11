@@ -4,9 +4,12 @@ import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 import MessageBubble from "./MessageBubble";
 
+import ErrorBubble from "./ErrorBubble";
+
 interface ChatMessagesProps {
   messages: UIMessage[];
   isLoading: boolean;
+  error?: string;
 }
 
 function TypingIndicator() {
@@ -37,6 +40,7 @@ function TypingIndicator() {
 export default function ChatMessages({
   messages,
   isLoading,
+  error,
 }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -51,6 +55,7 @@ export default function ChatMessages({
           <MessageBubble key={msg.id} message={msg} />
         ))}
         {isLoading && <TypingIndicator />}
+        {error && <ErrorBubble message={error} />}
         <div ref={bottomRef} />
       </div>
     </div>
