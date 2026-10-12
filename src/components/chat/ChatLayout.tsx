@@ -10,6 +10,13 @@ import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 
+const extractContent = (lastMessage: any) => {
+  return lastMessage.parts
+    .filter((p: any) => ['text', 'tool-searchKnowledgeBase'].includes(p.type))
+    .map((p: any) => p.type === 'text' ? p.text : p.output.matchedContext)
+    .join("");
+}
+
 export default function ChatLayout() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,9 +24,7 @@ export default function ChatLayout() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const previousMessagesLength = useRef(0);
-  const isLoadingFromDatabase = useRef(false);
-
+  const lastSavedMessageId = useRef<string | null>(null);
 
   const { messages, sendMessage, status, setMessages, error, clearError } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -27,46 +32,74 @@ export default function ChatLayout() {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Save user message when sent
+  // Helper function to save message to database
+  const saveMessageToDatabase = useCallback(async (message: any) => {
+    if (!activeId) return;
+
+    const content = extractContent(message)
+
+    try {
+      await fetch(`/api/sessions/${activeId}/messages/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: message.role, content, parts: message.parts }),
+      });
+      lastSavedMessageId.current = message.id;
+    } catch (err) {
+      console.error(`Failed to save ${message.role} message:`, err);
+    }
+  }, [activeId]);
+
+  // Save user message when sent (only on status change)
   useEffect(() => {
-    if (status === "submitted" && activeId && messages.length > 0 && !isLoadingFromDatabase.current) {
+    if (status === "submitted" && activeId && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "user" && messages.length > previousMessagesLength.current) {
-        const content = lastMessage.parts
-          .filter((p) => p.type === "text")
-          .map((p) => (p as { text: string }).text)
-          .join("");
-        fetch(`/api/sessions/${activeId}/messages/create`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role: "user", content, parts: lastMessage.parts }),
-        }).catch((err) => console.error("Failed to save user message:", err));
+      if (lastMessage.role === "user" && lastMessage.id !== lastSavedMessageId.current) {
+        saveMessageToDatabase(lastMessage);
       }
     }
-    previousMessagesLength.current = messages.length;
-  }, [status, activeId, messages]);
+  }, [status, activeId, messages, saveMessageToDatabase]);
 
-  // Save assistant message when streaming completes
+  // Save assistant message when streaming completes (only on status change)
   useEffect(() => {
-    if (status === "ready" && activeId && messages.length > 0 && !isLoadingFromDatabase.current) {
+    if (status === "ready" && activeId && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "assistant") {
-        const content = lastMessage.parts
-          .filter((p) => p.type === "text")
-          .map((p) => (p as { text: string }).text)
-          .join("");
-        // Only save if content is not empty
+      if (lastMessage.role === "assistant" && lastMessage.id !== lastSavedMessageId.current) {
+
+        const content = extractContent(lastMessage)
+
         if (content && content.trim()) {
-          fetch(`/api/sessions/${activeId}/messages/create`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role: "assistant", content, parts: lastMessage.parts }),
-          }).catch((err) => console.error("Failed to save assistant message:", err));
+          saveMessageToDatabase(lastMessage);
         }
       }
     }
-    previousMessagesLength.current = messages.length;
-  }, [status, activeId, messages]);
+  }, [status, activeId, messages, saveMessageToDatabase]);
+
+  // Save error message when error occurs
+  useEffect(() => {
+    if (status === "error" && activeId && error) {
+      const errorMessage = typeof error.message === "string"
+        ? error.message
+        : JSON.stringify(error.message);
+
+      if (errorMessage && errorMessage.trim()) {
+        // Create a message object similar to assistant message
+        const errorContent = errorMessage;
+        const errorParts = [{ type: "text", text: errorContent }];
+
+        // Save error message as assistant message
+        fetch(`/api/sessions/${activeId}/messages/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: "assistant",
+            content: errorContent,
+            parts: errorParts
+          }),
+        }).catch((err) => console.error("Failed to save error message:", err));
+      }
+    }
+  }, [status, activeId, error]);
 
   // Load sessions from database on mount
   useEffect(() => {
@@ -104,7 +137,6 @@ export default function ChatLayout() {
   // Load messages when selecting a session
   const loadMessages = useCallback(async (sessionId: string) => {
     try {
-      isLoadingFromDatabase.current = true;
       const response = await fetch(`/api/sessions/${sessionId}/messages`);
       if (response.ok) {
         const messages = await response.json();
@@ -115,16 +147,13 @@ export default function ChatLayout() {
           parts: m.parts ? JSON.parse(m.parts) : [{ type: "text", text: m.content }],
         }));
         setMessages(uiMessages);
-        // Update previous length to avoid saving loaded messages
-        previousMessagesLength.current = uiMessages.length;
-        // Reset flag after a short delay
-        setTimeout(() => {
-          isLoadingFromDatabase.current = false;
-        }, 200);
+        // Track last loaded message ID to avoid duplicate saves
+        if (uiMessages.length > 0) {
+          lastSavedMessageId.current = uiMessages[uiMessages.length - 1].id;
+        }
       }
     } catch (error) {
       console.error("Failed to load messages:", error);
-      isLoadingFromDatabase.current = false;
     }
   }, [setMessages]);
 
@@ -244,12 +273,12 @@ export default function ChatLayout() {
             error={
               error
                 ? (() => {
-                    try {
-                      return JSON.parse(error.message).error ?? error.message;
-                    } catch {
-                      return error.message;
-                    }
-                  })()
+                  try {
+                    return JSON.parse(error.message).error ?? error.message;
+                  } catch {
+                    return error.message;
+                  }
+                })()
                 : undefined
             }
           />
