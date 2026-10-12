@@ -4,13 +4,29 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { UIMessage } from "ai";
-import ToolCallCard from "./ToolCallCard";
 import { SlArrowDown } from "react-icons/sl";
 import { SlArrowUp } from "react-icons/sl";
 
-interface MessageBubbleProps {
-  message: UIMessage;
+export type SearchKnowledgeBasePart = {
+  type: "tool-searchKnowledgeBase";
+  toolCallId: string;
+  state: "call" | "result" | "output-available" | "partial-call";
+  input: {
+    query: string;
+  };
+  output?: {
+    matchedContext: string;
+  };
+};
+
+// 2. Viết Type Guard để phân loại tường minh
+function isSearchKnowledgePart(part: any): part is SearchKnowledgeBasePart {
+  return part.type === "tool-searchKnowledgeBase";
 }
+
+type MessageBubbleProps = {
+  message: UIMessage
+};
 
 const MAX_LENGTH_FOR_PREVIEW = 200;
 
@@ -193,22 +209,12 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             );
           }
 
-          // Tool invocation parts (tool-getWeather, tool-calculator, etc.)
-          if (part.type.startsWith("tool-")) {
-            const toolName = part.type.replace(/^tool-/, "");
-            const toolPart = part as unknown as {
-              state: string;
-              input: Record<string, unknown>;
-              output?: unknown;
-            };
+          // Tool invocation parts - không render UI card
+          if (part.type.startsWith("tool-") && isSearchKnowledgePart(part)) {
             return (
-              <ToolCallCard
-                key={i}
-                toolName={toolName}
-                state={toolPart.state ?? "input-available"}
-                input={toolPart.input ?? {}}
-                output={toolPart.output as never}
-              />
+              <p key={i} className="whitespace-pre-wrap break-words overflow-hidden">
+                {part.output?.matchedContext || ""}
+              </p>
             );
           }
 

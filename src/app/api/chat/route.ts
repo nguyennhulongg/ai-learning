@@ -1,13 +1,6 @@
-import { streamText, convertToModelMessages, stepCountIs } from "ai";
+import { streamText, convertToModelMessages } from "ai";
 import { createGroq } from "@ai-sdk/groq";
-import {
-  weatherTools,
-  datetimeTools,
-  calculatorTools,
-  searchTools,
-  currencyTools,
-  rag,
-} from "@/tools";
+import { rag } from "@/tools";
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -65,16 +58,10 @@ export async function POST(req: Request) {
           !(Array.isArray(m.content) && m.content.length === 0)
       ),
       system:
-        "Bạn là một AI assistant hữu ích với khả năng tra thời tiết, tính toán, tìm kiếm web và chuyển đổi tiền tệ. Luôn dùng tools khi người dùng hỏi về thời tiết, tính toán, tìm kiếm hoặc đổi tiền. Trả lời bằng ngôn ngữ của người dùng.",
+        "Bạn là một AI assistant hữu ích với khả năng tìm kiếm thông tin trong cơ sở dữ liệu. Sử dụng tool searchKnowledgeBase khi cần tìm kiếm thông tin. Trả lời bằng ngôn ngữ của người dùng.",
       tools: {
-        ...weatherTools,
-        ...datetimeTools,
-        ...calculatorTools,
-        ...searchTools,
-        ...currencyTools,
         ...rag
       },
-      stopWhen: stepCountIs(3),
     });
 
     return result.toUIMessageStreamResponse({
