@@ -133,7 +133,10 @@ function PopoverContent({
         style={{ color: "var(--text-primary)", marginBottom: "8px", justifyContent: "flex-start" }}
         className="rounded-full"
         icon={<SlShare size={14} />}
-        onClick={onShare}
+        onClick={(e) => {
+          e.stopPropagation();
+          onShare();
+        }}
       >
         {POPOVER_OPTIONS.share}
       </Button>
@@ -143,7 +146,10 @@ function PopoverContent({
         style={{ color: "var(--text-primary)", marginBottom: "8px", justifyContent: "flex-start" }}
         className="rounded-full"
         icon={<SlPin size={14} />}
-        onClick={onPin}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPin();
+        }}
       >
         {isPinned ? POPOVER_OPTIONS.unpin : POPOVER_OPTIONS.pin}
       </Button>
@@ -153,7 +159,10 @@ function PopoverContent({
         style={{ color: "var(--text-primary)", marginBottom: "8px", justifyContent: "flex-start" }}
         className="rounded-full"
         icon={<SlPencil size={14} />}
-        onClick={onRename}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRename();
+        }}
       >
         {POPOVER_OPTIONS.rename}
       </Button>
@@ -163,7 +172,10 @@ function PopoverContent({
         style={{ color: "#ef4444", marginBottom: "8px", justifyContent: "flex-start" }}
         className="rounded-full"
         icon={<SlTrash size={14} />}
-        onClick={onDelete}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
       >
         {POPOVER_OPTIONS.delete}
       </Button>

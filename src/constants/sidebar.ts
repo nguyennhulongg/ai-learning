@@ -31,4 +31,5 @@ export const POPOVER_OPTIONS = {
   unpin: "Bỏ ghim",
   rename: "Đổi tên",
   delete: "Xóa",
+  upload: "Tải tệp lên",
 } as const;

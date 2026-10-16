@@ -64,8 +64,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             ? { background: "var(--bg-surface-user)", color: "var(--text-primary)", fontSize: "17px" }
             : { color: "var(--text-primary)", fontSize: "17px" }
         }
-        className={`px-4 py-3 rounded-2xl leading-relaxed relative
-          ${isUser ? "max-w-[60%] rounded-tr-sm" : "w-full rounded-tl-sm"}`}
+        className={`rounded-2xl leading-relaxed relative
+          ${isUser ? "max-w-[60%] rounded-tr-sm py-3 px-4" : "w-full rounded-tl-sm px-1"}`}
       >
         {message.parts.map((part, i) => {
           // Text part

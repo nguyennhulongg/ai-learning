@@ -58,7 +58,7 @@ export async function POST(req: Request) {
           !(Array.isArray(m.content) && m.content.length === 0)
       ),
       system:
-        "Bạn là một AI assistant hữu ích với khả năng tìm kiếm thông tin trong cơ sở dữ liệu. Sử dụng tool searchKnowledgeBase khi cần tìm kiếm thông tin. Trả lời bằng ngôn ngữ của người dùng.",
+        "Bạn là một AI assistant hữu ích với khả năng tìm kiếm thông tin trong cơ sở dữ liệu. Sử dụng tool searchKnowledgeBase khi người dùng yêu cầu tìm kiếm thông tin cụ thể. KHÔNG sử dụng tool khi người dùng yêu cầu không tìm trong cơ sở dữ liệu. Trả lời bằng ngôn ngữ của người dùng.",
       tools: {
         ...rag
       },

@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp, text, boolean, customType } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, text, boolean, customType, jsonb } from "drizzle-orm/pg-core";
 
 const VECTOR_DIMENSION = 768; // Số chiều chuẩn của Gemini Embedding
 
@@ -33,6 +33,7 @@ export const messages = pgTable("messages", {
   role: varchar("role", { length: 20 }).notNull(),
   content: text("content").notNull(),
   parts: text("parts").notNull(),
+  attachments: jsonb("attachments").$type<any[]>().default([]).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
