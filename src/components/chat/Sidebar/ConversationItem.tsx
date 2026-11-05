@@ -3,6 +3,7 @@ import { SlShare, SlPin, SlPencil, SlTrash } from "react-icons/sl";
 import { Button, Popover } from "antd";
 import type { Conversation } from "@/types/chat";
 import { POPOVER_OPTIONS } from "@/constants/sidebar";
+import { createStaticStyles } from "antd-style";
 
 interface ConversationItemProps {
   conv: Conversation;
@@ -15,6 +16,12 @@ interface ConversationItemProps {
   onSelect: (id: string) => void;
   onPopoverOpenChange: (open: boolean, id: string) => void;
 }
+
+const classNames = createStaticStyles(({ css }) => ({
+  root: css`
+    border-radius: 20px !important;
+  `,
+}));
 
 export default function ConversationItem({
   conv,
@@ -58,6 +65,7 @@ export default function ConversationItem({
             </div>
             <Popover
               arrow={false}
+              classNames={classNames}
               open={isPopoverOpen}
               onOpenChange={(open) => onPopoverOpenChange(open, conv.id)}
               content={
@@ -85,6 +93,7 @@ export default function ConversationItem({
           <Popover
             arrow={false}
             open={isPopoverOpen}
+            classNames={classNames}
             onOpenChange={(open) => onPopoverOpenChange(open, conv.id)}
             content={
               <PopoverContent

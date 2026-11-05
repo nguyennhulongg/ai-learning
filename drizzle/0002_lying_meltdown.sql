@@ -1,0 +1,1 @@
+ALTER TABLE "file_chunks" ALTER COLUMN "embedding" DROP NOT NULL;

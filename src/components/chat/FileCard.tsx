@@ -15,7 +15,7 @@ export default function FileCard({ file, onRemove }: FileCardProps) {
       style={{ background: "var(--bg-base)", width: "112px", height: "112px" }}
       className="flex flex-col justify-between rounded-[20px] px-4 py-4 shrink-0 relative group"
     >
-      {file.isLoading ? (
+      {file.status === 'uploading' ? (
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             className="w-6 h-6 rounded-full border-2 border-t-transparent border-gray-400 animate-spin"
@@ -40,7 +40,7 @@ export default function FileCard({ file, onRemove }: FileCardProps) {
         </>
       )}
       <button
-        onClick={() => onRemove(file.id)}
+        onClick={() => onRemove(file.uid)}
         style={{ color: "var(--text-muted)" }}
         className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent border-none outline-none cursor-pointer"
       >

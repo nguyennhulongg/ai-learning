@@ -1,0 +1,1 @@
+ALTER TABLE "files" ADD COLUMN "purpose" varchar(30) DEFAULT 'prompt_attachment' NOT NULL;

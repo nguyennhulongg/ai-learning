@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 import MessageBubble from "./MessageBubble";
+import { DoclingClient } from '@docling/docling-client';
 
 import ErrorBubble from "./ErrorBubble";
 
@@ -49,10 +50,18 @@ export default function ChatMessages({
   }, [messages, isLoading]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6">
-      <div className="max-w-5xl w-full mx-auto flex flex-col gap-5">
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+    <div className="flex-1 overflow-y-auto px-4 py-14">
+      <div className="max-w-188 w-full mx-auto flex flex-col gap-5">
+        {messages.map((message) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isStreaming={
+              status === "streaming" &&
+              message.role === "assistant" &&
+              message.id === messages[messages.length - 1]?.id
+            }
+          />
         ))}
         {isLoading && <TypingIndicator />}
         {error && <ErrorBubble message={error} />}

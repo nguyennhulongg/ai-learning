@@ -1,6 +1,6 @@
 import { streamText, convertToModelMessages } from "ai";
 import { createGroq } from "@ai-sdk/groq";
-import { rag } from "@/tools";
+import { DoclingClient } from '@docling/docling-client';
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -43,6 +43,7 @@ function getErrorMessage(err: unknown): string {
   return "Đã xảy ra lỗi không xác định.";
 }
 
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
@@ -59,9 +60,9 @@ export async function POST(req: Request) {
       ),
       system:
         "Bạn là một AI assistant hữu ích với khả năng tìm kiếm thông tin trong cơ sở dữ liệu. Sử dụng tool searchKnowledgeBase khi người dùng yêu cầu tìm kiếm thông tin cụ thể. KHÔNG sử dụng tool khi người dùng yêu cầu không tìm trong cơ sở dữ liệu. Trả lời bằng ngôn ngữ của người dùng.",
-      tools: {
-        ...rag
-      },
+      // tools: {
+      //   ...rag
+      // },
     });
 
     return result.toUIMessageStreamResponse({
