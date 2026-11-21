@@ -26,7 +26,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
+    // Request bị huỷ có chủ đích, ví dụ khi người dùng bấm Huỷ, không phải là lỗi.
+    if (!axios.isCancel(error)) {
+      console.error('API Error:', error);
+    }
     return Promise.reject(error);
   }
 );

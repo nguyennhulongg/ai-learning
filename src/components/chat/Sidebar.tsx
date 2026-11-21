@@ -1,23 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useUploadFile } from "@/features/upload/upload.mutations";
 import { useDeleteSession, usePinSession, useUpdateSession } from "@/features/sessions/sessions.mutations";
 import type { Conversation } from "@/types/chat";
-import { Button, ConfigProvider, message, notification, theme, Upload, UploadProps } from "antd";
+import { Button, ConfigProvider, theme } from "antd";
 import { POPOVER_OPTIONS, SOCIAL_SHARE_URLS } from "@/constants/sidebar";
 import ConversationItem from "./Sidebar/ConversationItem";
 import ShareModal from "./Sidebar/ShareModal";
 import DeleteModal from "./Sidebar/DeleteModal";
 import RenameModal from "./Sidebar/RenameModal";
+import DocumentUploadModal from "./Sidebar/DocumentUploadModal";
 import SidebarHeader from "./Sidebar/SidebarHeader";
 import SidebarFooter from "./Sidebar/SidebarFooter";
 import { createStaticStyles } from "antd-style";
 import { AiOutlineDown, AiOutlineUpload } from "react-icons/ai";
-import { UPLOAD_PURPOSE } from "@/constants/files";
-import { useOcrProcess } from "@/features/ocr-process/ocr-process.mutations";
 
-type NotificationType = 'success' | 'info' | 'warning' | 'error';
 interface SidebarProps {
   conversations: Conversation[];
   activeId: string | null;
@@ -69,42 +66,11 @@ export default function Sidebar({
   const [newTitle, setNewTitle] = useState("");
   const [documentSectionOpen, setDocumentSectionOpen] = useState(true);
   const [chatsSectionOpen, setChatsSectionOpen] = useState(true);
-  const [api, contextHolder] = notification.useNotification();
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
-  const openNotificationWithIcon = (type: NotificationType) => {
-    api[type]({
-      title: 'Document uploaded successfully!',
-    });
-  };
-
-  const uploadMutation = useUploadFile();
   const deleteMutation = useDeleteSession();
   const updateMutation = useUpdateSession();
   const pinMutation = usePinSession();
-  const ocrProcessMutation = useOcrProcess()
-
-  const props: UploadProps = {
-    name: 'file',
-    action: '/api/upload',
-    customRequest: async (options) => {
-      const { onSuccess, onError, file } = options;
-      try {
-        const formData = new FormData();
-        formData.append('file', file as any);
-        formData.append('purpose', UPLOAD_PURPOSE.KNOWLEDGE_BASE);
-
-        const data = await uploadMutation.mutateAsync(formData);
-        onSuccess?.(data);
-        openNotificationWithIcon('success');
-
-        await ocrProcessMutation.mutateAsync(data.fileId);
-      } catch (error) {
-        onError?.(error as Error);
-        openNotificationWithIcon('error');
-      }
-    },
-    showUploadList: false,
-  };
 
   const handleDelete = async (id: string) => {
     setSessionToDelete(id);
@@ -161,7 +127,6 @@ export default function Sidebar({
   };
   return (
     <>
-      {contextHolder}
       <ConfigProvider
         theme={{
           algorithm: theme.defaultAlgorithm,
@@ -211,17 +176,16 @@ export default function Sidebar({
               <nav className="px-2">
                 <ul>
                   <li>
-                    <Upload {...props} style={{ width: "100%" }}>
-                      <Button
-                        block
-                        type="text"
-                        style={{ color: "var(--text-primary)", justifyContent: "flex-start" }}
-                        className="rounded-full"
-                        icon={<AiOutlineUpload size={14} />}
-                      >
-                        {POPOVER_OPTIONS.upload}
-                      </Button>
-                    </Upload>
+                    <Button
+                      block
+                      type="text"
+                      style={{ color: "var(--text-primary)", justifyContent: "flex-start" }}
+                      className="rounded-full"
+                      icon={<AiOutlineUpload size={14} />}
+                      onClick={() => setUploadModalOpen(true)}
+                    >
+                      {POPOVER_OPTIONS.upload}
+                    </Button>
                   </li>
                 </ul>
               </nav>
@@ -308,6 +272,11 @@ export default function Sidebar({
 
           <SidebarFooter />
         </aside>
+
+        <DocumentUploadModal
+          open={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+        />
 
         <ShareModal
           open={shareModalOpen}

@@ -1,0 +1,278 @@
+[
+  {
+    "Symbol": "ABB",
+    "FullName": "Ngân hàng Thương mại cổ phần An Bình",
+    "Price": 17.1,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "ACB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Á Châu",
+    "Price": 20.35,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "AGRIBANK",
+    "FullName": "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "BAB",
+    "FullName": "Ngân hàng Thương mại cổ phần Bắc Á",
+    "Price": 10.4,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "BAOVIETBANK",
+    "FullName": "Ngân hàng TMCP Bảo Việt",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "BID",
+    "FullName": "Ngân hàng Thương mại cổ phần Đầu tư và Phát triển Việt Nam",
+    "Price": 31.95,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "BVB",
+    "FullName": "Ngân hàng Thương mại cổ phần Bản Việt",
+    "Price": 10.35,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "CBBANK",
+    "FullName": "Ngân hàng Thương mại TNHH MTV Ngoại thương Công nghệ số",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "COOPBANK",
+    "FullName": "Ngân hàng Hợp tác xã Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "CTG",
+    "FullName": "Ngân hàng Thương mại Cổ phần Công thương Việt Nam",
+    "Price": 31.85,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "DAF",
+    "FullName": "Ngân hàng Thương mại cổ phần Đông Á",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "DAIABANK",
+    "FullName": "Ngân hàng Thương mại cổ phần Đại Á",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "EIB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Xuất nhập khẩu Việt Nam",
+    "Price": 16.2,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "EVF",
+    "FullName": "Công ty Tài chính cổ phần Điện lực",
+    "Price": 11.7,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "GPBANK",
+    "FullName": "Ngân hàng Thương mại TNHH MTV Dầu khí Toàn cầu",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "HBB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Nhà Hà Nội",
+    "Price": 5.2,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "HDB",
+    "FullName": "Ngân hàng TMCP Phát triển T.P Hồ Chí Minh",
+    "Price": 22.5,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "KLB",
+    "FullName": "Ngân hàng Thương mại cổ phần Kiên Long",
+    "Price": 10.3,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "LPB",
+    "FullName": "Ngân hàng Thương mại cổ phần Lộc Phát Việt Nam",
+    "Price": 35.5,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "MBB",
+    "FullName": "Ngân hàng Thương mại cổ phần Quân đội",
+    "Price": 19.25,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "MEKONGBANK",
+    "FullName": "Ngân hàng TMCP Phát triển Mê Kông",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MHB",
+    "FullName": "Ngân hàng TMCP Phát triển nhà đồng bằng sông Cửu Long",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MSB",
+    "FullName": "Ngân hàng Thương mại cổ phần Hàng hải Việt Nam",
+    "Price": 16.35,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "NAB",
+    "FullName": "Ngân hàng Thương mại cổ phần Nam Á",
+    "Price": 12.6,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "NVB",
+    "FullName": "Ngân hàng Thương mại cổ phần Quốc Dân",
+    "Price": 15.9,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "OCB",
+    "FullName": "Ngân hàng Thương mại cổ phần Phương Đông",
+    "Price": 10.7,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "OCEANBANK",
+    "FullName": "Ngân hàng Thương mại TNHH MTV Đại Dương",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "PGB",
+    "FullName": "Ngân hàng TMCP Thịnh vượng và Phát triển",
+    "Price": 9.5,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "PCB",
+    "FullName": "Ngân hàng Thương mại cổ phần Đại chúng Việt Nam",
+    "Price": 9,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "PVF",
+    "FullName": "Tổng Công ty Tài chính Cổ phần Dầu khí Việt Nam",
+    "Price": 4.2,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "SCB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Sài Gòn",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SDF",
+    "FullName": "Công ty Tài chính cổ phần Sông Đà",
+    "Price": 6.4,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "SGB",
+    "FullName": "Ngân hàng TMCP Sài Gòn Công thương",
+    "Price": 12.9,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "SHB",
+    "FullName": "Ngân hàng Thương mại cổ phần Sài Gòn - Hà Nội",
+    "Price": 10.75,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "SOUTHERNBANK",
+    "FullName": "Ngân hàng TMCP Phương Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SSB",
+    "FullName": "Ngân hàng Thương mại cổ phần Đông Nam Á",
+    "Price": 14.8,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "STB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Sài Gòn Tài Lộc",
+    "Price": 70,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "TCB",
+    "FullName": "Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)",
+    "Price": 21.65,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "TCXM",
+    "FullName": "Công ty Tài chính cổ phần Xi măng",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "TPB",
+    "FullName": "Ngân hàng Thương mại cổ phần Tiên Phong",
+    "Price": 12.7,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VAB",
+    "FullName": "Ngân hàng Thương mại cổ phần Việt Á",
+    "Price": 9,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VBB",
+    "FullName": "Ngân hàng Thương mại cổ phần Việt Nam Thương Tín",
+    "Price": 12.15,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "VCB",
+    "FullName": "Ngân hàng Thương mại cổ phần Ngoại thương Việt Nam",
+    "Price": 53.6,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VIB",
+    "FullName": "Ngân hàng Thương mại cổ phần Quốc tế Việt Nam",
+    "Price": 14,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VPB",
+    "FullName": "Ngân hàng Thương mại Cổ phần Việt Nam Thịnh Vượng",
+    "Price": 22.05,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "WESTERNBANK",
+    "FullName": "Ngân hàng TMCP Phương Tây",
+    "Price": 0,
+    "TradeCenterId": 8
+  }
+]

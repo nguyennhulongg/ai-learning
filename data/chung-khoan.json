@@ -1,0 +1,542 @@
+[
+  {
+    "Symbol": "AAS",
+    "FullName": "Công ty cổ phần Chứng khoán SmartInvest",
+    "Price": 9.9,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "ABW",
+    "FullName": "CTCP Chứng khoán An Bình",
+    "Price": 13.1,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "ACBS",
+    "FullName": "Công ty TNHH Chứng khoán ACB",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "AGR",
+    "FullName": "Công ty Cổ phần Chứng khoán Agribank",
+    "Price": 11.75,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "APG",
+    "FullName": "Công ty Cổ phần Chứng khoán APG",
+    "Price": 3.87,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "APS",
+    "FullName": "Công ty Cổ phần Chứng khoán Châu Á – Thái Bình Dương",
+    "Price": 5.2,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "APSC",
+    "FullName": "Công ty Cổ phần Chứng khoán ALPHA",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "ART",
+    "FullName": "Công ty Cổ phần Chứng khoán Artex",
+    "Price": 1.3,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "ASC",
+    "FullName": "Công ty Cổ phần Chứng khoán ASC",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "ATSC",
+    "FullName": "Công ty Cổ phần Chứng khoán An Thành",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "BETA",
+    "FullName": "Công ty Cổ phần Chứng khoán BETA",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "BMS",
+    "FullName": "Công ty Cổ phần Chứng khoán Bảo Minh",
+    "Price": 11.9,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "BSI",
+    "FullName": "Công ty cổ phần Chứng khoán BIDV",
+    "Price": 29.1,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "BVS",
+    "FullName": "Công ty Cổ phần Chứng khoán Bảo Việt",
+    "Price": 0,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "CASC",
+    "FullName": "Công ty Cổ phần Chứng khoán Thủ Đô",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "CIMBVinashin",
+    "FullName": "Công ty TNHH Chứng khoán CIMB - Vinashin",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "CSI",
+    "FullName": "Công ty cổ phần Chứng khoán Kiến thiết Việt Nam",
+    "Price": 13.6,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "CTS",
+    "FullName": "Công ty cổ phần Chứng khoán VietinBank",
+    "Price": 23.35,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "DASC",
+    "FullName": "Công ty TNHH MTV Chứng khoán Ngân hàng Đông Á",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "DDS",
+    "FullName": "Công ty Cổ phần Chứng khoán AIS",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "DSC",
+    "FullName": "Công ty Cổ phần Chứng khoán DSC",
+    "Price": 9.5,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "DSE",
+    "FullName": "Công ty Cổ phần Chứng khoán DNSE",
+    "Price": 20.1,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "DVSC",
+    "FullName": "Công ty Cổ phần Chứng khoán Đại Việt",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "ECC",
+    "FullName": "Công ty Cổ phần Chứng khoán EUROCAPITAL",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "EVS",
+    "FullName": "Công ty cổ phần Chứng khoán EVS",
+    "Price": 4.9,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "FTS",
+    "FullName": "Công ty Cổ phần Chứng khoán FPT",
+    "Price": 19.6,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "GLS",
+    "FullName": "Công ty Cổ phần Chứng khoán Sen Vàng",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "HBS",
+    "FullName": "Công ty Cổ phần Chứng khoán Hòa Bình",
+    "Price": 3.7,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "HBSC",
+    "FullName": "Công ty Cổ phần Chứng khoán Hưng Thịnh",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "HCM",
+    "FullName": "Công ty Cổ phần Chứng khoán Thành phố Hồ Chí Minh",
+    "Price": 23.55,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "HRS",
+    "FullName": "CTCP Chứng khoán Việt Nam Gateway",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "HSSC",
+    "FullName": "Công ty Cổ phần Chứng khoán Hà Nội",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "HVS",
+    "FullName": "CTCP Chứng khoán HVS Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "IRS",
+    "FullName": "Công ty Cổ phần Chứng khoán Quốc tế Hoàng Gia",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "ISC",
+    "FullName": "Công ty Cổ phần Chứng khoán Công Nghiệp Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "IVS",
+    "FullName": "Công ty cổ phần Chứng khoán Guotai Haitong (Việt Nam)",
+    "Price": 6.2,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "JSI",
+    "FullName": "Công ty cổ phần Chứng khoán Nhật Bản",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "KIS",
+    "FullName": "Công ty Cổ phần Chứng khoán KIS Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "KVS",
+    "FullName": "Công ty Cổ phần Chứng khoán KENANGA Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MBKE",
+    "FullName": "Công ty cổ phần Chứng khoán MayBank Kim Eng",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MBS",
+    "FullName": "Công ty cổ phần Chứng khoán MB",
+    "Price": 16.2,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "MHBS",
+    "FullName": "Công ty cổ phần Chứng khoán Ngân hàng Phát triển Nhà đồng bằng Sông Cửu Long",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MIRAEASSET",
+    "FullName": "Công ty TNHH Chứng khoán Mirae Asset (Việt Nam)",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "MSG",
+    "FullName": "Công ty Chứng khoán JB Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "NASC",
+    "FullName": "Công ty TNHH Chứng khoán Shinhan Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "NSI",
+    "FullName": "Công ty Cổ phần Chứng khoán Quốc gia",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "NVS",
+    "FullName": "Công ty cổ phần Chứng khoán NAVIBANK",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "OCS",
+    "FullName": "Công ty Cổ phần Chứng khoán Đại Dương",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "ORS",
+    "FullName": "Công ty Cổ phần Chứng khoán Tiên Phong",
+    "Price": 14.3,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "OSC",
+    "FullName": "Công ty Cổ phần Chứng khoán ĐẠI TÂY DƯƠNG",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "PGSC",
+    "FullName": "Công ty Cổ phần Chứng khoán PHÚ GIA",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "PHS",
+    "FullName": "Công ty Cổ phần Chứng khoán Phú Hưng",
+    "Price": 8.9,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "PSI",
+    "FullName": "Công ty cổ phần Chứng khoán Dầu khí",
+    "Price": 7.7,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "ROSE",
+    "FullName": "CTCP Chứng khoán Globalmind Capital",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "RUBSE",
+    "FullName": "Công ty Cổ phần Chứng khoán CAO SU",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SBBS",
+    "FullName": "Công ty Cổ phần Chứng khoán SAIGONBANK BERJAYA",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SBS",
+    "FullName": "Công ty Cổ phần Chứng khoán SBS",
+    "Price": 4.1,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "SeASecurities",
+    "FullName": "Công ty Cổ phần Chứng khoán Asean",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SHBS",
+    "FullName": "Công ty Cổ phần Chứng khoán SHB",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SHS",
+    "FullName": "Công ty Cổ phần Chứng khoán Sài Gòn - Hà Nội",
+    "Price": 13.5,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "SJCS",
+    "FullName": "Công ty Cổ phần Chứng khoán SJC",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "SSI",
+    "FullName": "Công ty cổ phần Chứng khoán SSI",
+    "Price": 20.4,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "STSC",
+    "FullName": "Công ty Cổ phần Chứng khoán SÀI GÒN TOURIST",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "TCI",
+    "FullName": "Công ty cổ phần Chứng khoán Thành Công",
+    "Price": 9.6,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "TSS",
+    "FullName": "Công ty Cổ phần Chứng khoán TRƯỜNG SƠN",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "TVB",
+    "FullName": "Công ty cổ phần Chứng khoán T-Cap",
+    "Price": 5.79,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "TVS",
+    "FullName": "Công ty Cổ phần Chứng khoán Thiên Việt",
+    "Price": 12.15,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "TVSI",
+    "FullName": "Công ty Cổ phần Chứng khoán Tân Việt",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "UPS",
+    "FullName": "Công ty cổ phần Chứng khoán UP",
+    "Price": 21.5,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "VCBS",
+    "FullName": "Công ty TNHH Chứng khoán Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VCI",
+    "FullName": "Công ty Cổ phần Chứng khoán VIETCAP",
+    "Price": 20.2,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VCK",
+    "FullName": "Công ty Cổ phần Chứng khoán VPS",
+    "Price": 28.65,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VDS",
+    "FullName": "Công ty Cổ phần Chứng khoán Rồng Việt",
+    "Price": 9.86,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VDSE",
+    "FullName": "Công ty Cổ phần Chứng khoán Viễn Đông",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VFS",
+    "FullName": "Công ty Cổ phần Chứng khoán Nhất Việt",
+    "Price": 9.6,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "VIG",
+    "FullName": "Công ty Cổ phần Chứng khoán Đầu tư Tài chính Việt Nam",
+    "Price": 4.1,
+    "TradeCenterId": 2
+  },
+  {
+    "Symbol": "VINAGLOBAL",
+    "FullName": "Công ty Cổ phần Chứng khoán Toàn Cầu",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VITS",
+    "FullName": "Công ty Cổ phần Chứng khoán VIT",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VIX",
+    "FullName": "Công ty cổ phần Chứng khoán VIX",
+    "Price": 13.35,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VND",
+    "FullName": "Công ty cổ phần Chứng khoán VNDIRECT",
+    "Price": 14.95,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VNSC",
+    "FullName": "Công ty Cổ phần Chứng khoán VINA",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VPX",
+    "FullName": "Công ty Cổ phần Chứng khoán VPBANK",
+    "Price": 0,
+    "TradeCenterId": 1
+  },
+  {
+    "Symbol": "VQSC",
+    "FullName": "Công ty Cổ phần Chứng khoán Việt Quốc",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VSCS",
+    "FullName": "Công ty Cổ phần Chứng khoán Việt",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VSEC",
+    "FullName": "Công ty Cổ phần Chứng khoán Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VTSC",
+    "FullName": "Công ty Cổ phần Chứng khoán Việt Thành",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VTSS",
+    "FullName": "Công ty Cổ phần Chứng khoán Việt Tín",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "VUA",
+    "FullName": "Công ty cổ phần Chứng khoán Stanley Brothers",
+    "Price": 15.1,
+    "TradeCenterId": 9
+  },
+  {
+    "Symbol": "WOORICBV",
+    "FullName": "Công ty TNHH Chứng khoán NH Việt Nam",
+    "Price": 0,
+    "TradeCenterId": 8
+  },
+  {
+    "Symbol": "WSS",
+    "FullName": "Công ty Cổ phần Chứng khoán Phố Wall",
+    "Price": 5.9,
+    "TradeCenterId": 2
+  }
+]

@@ -22,6 +22,27 @@
       "when": 1792523361813,
       "tag": "0002_lying_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793976966408,
+      "tag": "0003_add_financial_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793978587019,
+      "tag": "0004_companies_industry_nullable",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793980195338,
+      "tag": "0005_add_company_sector",
+      "breakpoints": true
     }
   ]
 }

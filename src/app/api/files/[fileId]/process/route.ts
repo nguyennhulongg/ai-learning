@@ -15,6 +15,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { files, fileContents, fileChunks } from "@/db/schema";
 import { OcrProcessResponse } from "@/features/ocr-process/ocr-process.types";
+import { EXTRACTING_PROGRESS, ocrProgress } from "@/constants/progress";
+import { finishJob, startJob, updateJob } from "@/server/processing-jobs";
+import { extractAndSaveFacts } from "@/server/save-financials";
 
 export const maxDuration = 300;
 
@@ -41,7 +44,18 @@ if (!supabaseUrl || !serviceKey) {
 const supabase = createClient(supabaseUrl, serviceKey);
 
 
-function runPython(pdfUrl: string): Promise<ExtractionResult> {
+// Chạy script Python để trích xuất PDF và trả về kết quả đã kiểm tra cấu trúc.
+// spawn mở Python thành một tiến trình con (chương trình chạy song song với Node.js).
+// Hai bên trao đổi qua stdin (luồng nhập) và stdout (luồng xuất): URL được ghi vào stdin,
+// kết quả là dòng stdout bắt đầu bằng __OCR_RESULT__.
+// Promise là giá trị sẽ có trong tương lai, ở đây là khi Python chạy xong.
+// onPage được gọi mỗi khi Python báo đã xử lý xong một trang.
+// Khi signal phát tín hiệu dừng, tiến trình Python bị tắt ngay.
+function runPython(
+    pdfUrl: string,
+    onPage: (current: number, total: number) => void,
+    signal: AbortSignal,
+): Promise<ExtractionResult> {
     return new Promise((resolve, reject) => {
         const pythonPath =
             process.env.PYTHON_PATH ||
@@ -65,11 +79,21 @@ function runPython(pdfUrl: string): Promise<ExtractionResult> {
         let stderr = "";
         let settled = false;
 
+        // Từ chối Promise một lần duy nhất, kể cả khi nhiều sự kiện lỗi xảy ra.
         const fail = (error: Error) => {
             if (settled) return;
             settled = true;
             reject(error);
         };
+
+        signal.addEventListener(
+            "abort",
+            () => {
+                child.kill();
+                fail(signal.reason as Error);
+            },
+            { once: true },
+        );
 
         child.stdout.setEncoding("utf8");
         child.stderr.setEncoding("utf8");
@@ -87,6 +111,11 @@ function runPython(pdfUrl: string): Promise<ExtractionResult> {
         child.stderr.on("data", (data: string) => {
             stderr += data;
             process.stderr.write(`[PYTHON STDERR] ${data}`);
+
+            // Python in tiến độ theo dạng "page 3/86: tesseract".
+            for (const match of data.matchAll(/^page (\d+)\/(\d+):/gm)) {
+                onPage(Number(match[1]), Number(match[2]));
+            }
         });
 
         child.on("error", (error) => {
@@ -179,6 +208,10 @@ function runPython(pdfUrl: string): Promise<ExtractionResult> {
 }
 
 
+// Chia văn bản thành các chunk (đoạn nhỏ) dài tối đa chunkSize ký tự, ưu tiên cắt ở ranh giới từ.
+// Cần chia nhỏ vì RAG chỉ lấy vài đoạn liên quan nhất cho AI, không gửi cả tài liệu.
+// Overlap là phần chồng lấn: hai chunk liền nhau có chung overlap ký tự,
+// để ý nằm ngay chỗ cắt không bị mất.
 function splitText(
     text: string,
     chunkSize = 1200,
@@ -215,6 +248,9 @@ function splitText(
     return chunks;
 }
 
+// Xử lý một file trong knowledge base (kho tài liệu để AI tra cứu):
+// trích xuất PDF, chia chunk rồi lưu vào DB.
+// Trạng thái xử lý được ghi vào bảng files, kể cả khi thất bại.
 export async function POST(
     _req: Request,
     context: { params: Promise<{ fileId: string }> },
@@ -257,6 +293,8 @@ export async function POST(
         );
     }
 
+    const job = startJob(fileId);
+
     try {
         await db
             .update(files)
@@ -277,7 +315,11 @@ export async function POST(
             );
         }
 
-        const result = await runPython(signedData.signedUrl);
+        const result = await runPython(
+            signedData.signedUrl,
+            (current, total) => updateJob(fileId, ocrProgress(current, total)),
+            job.signal,
+        );
 
         const plainText = result.pages
             .map((page) => `Trang ${page.page_number}\n${page.text}`)
@@ -290,33 +332,6 @@ export async function POST(
         if (!plainText.trim()) {
             throw new Error("Không trích xuất được văn bản từ PDF.");
         }
-
-        // Lưu nội dung trích xuất. file_contents có unique index trên file_id.
-        await db
-            .insert(fileContents)
-            .values({
-                id: crypto.randomUUID(),
-                file_id: fileId,
-                content_json: result,
-                markdown,
-                plain_text: plainText,
-                extraction_version: result.extraction_version,
-            })
-            .onConflictDoUpdate({
-                target: fileContents.file_id,
-                set: {
-                    content_json: result,
-                    markdown,
-                    plain_text: plainText,
-                    extraction_version: result.extraction_version,
-                    updated_at: new Date(),
-                },
-            });
-
-        // Xóa chunk cũ trước khi tạo lại, tránh dữ liệu trùng khi chạy lại.
-        await db
-            .delete(fileChunks)
-            .where(eq(fileChunks.file_id, fileId));
 
         const chunkRows = result.pages.flatMap((page) =>
             splitText(page.text).map((content) => ({
@@ -340,10 +355,49 @@ export async function POST(
             chunk_index: index,
         }));
 
-        if (indexedChunkRows.length > 0) {
-            await db.insert(fileChunks).values(indexedChunkRows); // hiện tại đang lỗi type do vector required, sau này thêm
-        }
+        // Transaction gom nhiều lệnh DB thành một khối: tất cả cùng thành công hoặc cùng huỷ.
+        // Nhờ vậy, nếu lỗi giữa chừng thì chunk cũ không bị mất.
+        await db.transaction(async (tx) => {
+            // Lưu nội dung trích xuất. Unique index trên file_id bảo đảm mỗi file chỉ có một dòng,
+            // nên onConflictDoUpdate sẽ cập nhật dòng cũ thay vì báo lỗi trùng khi chạy lại.
+            await tx
+                .insert(fileContents)
+                .values({
+                    id: crypto.randomUUID(),
+                    file_id: fileId,
+                    content_json: result,
+                    markdown,
+                    plain_text: plainText,
+                    extraction_version: result.extraction_version,
+                })
+                .onConflictDoUpdate({
+                    target: fileContents.file_id,
+                    set: {
+                        content_json: result,
+                        markdown,
+                        plain_text: plainText,
+                        extraction_version: result.extraction_version,
+                        updated_at: new Date(),
+                    },
+                });
 
+            // Xóa chunk cũ trước khi tạo lại, tránh dữ liệu trùng khi chạy lại.
+            await tx
+                .delete(fileChunks)
+                .where(eq(fileChunks.file_id, fileId));
+
+            if (indexedChunkRows.length > 0) {
+                await tx.insert(fileChunks).values(indexedChunkRows);
+            }
+        });
+
+        // Chạy sau khi OCR đã lưu xong, nên lỗi trích số không làm mất nội dung đã OCR.
+        updateJob(fileId, EXTRACTING_PROGRESS);
+
+        const extraction = await extractAndSaveFacts(fileId, result.pages, job.signal);
+        job.signal.throwIfAborted();
+
+        // Chỉ báo hoàn tất sau khi trích số xong, để giao diện không chuyển tab quá sớm.
         await db
             .update(files)
             .set({
@@ -359,8 +413,15 @@ export async function POST(
             processingStatus: "completed",
             pageCount: result.page_count,
             chunkCount: indexedChunkRows.length,
+            extraction,
         });
     } catch (error) {
+        // Huỷ là thao tác của người dùng chứ không phải lỗi, nên trả về 200.
+        // Route cancel đã cập nhật trạng thái nên không ghi đè ở đây.
+        if (job.signal.aborted) {
+            return NextResponse.json({ cancelled: true });
+        }
+
         const message =
             error instanceof Error ? error.message : "OCR processing failed";
 
@@ -370,7 +431,9 @@ export async function POST(
             .update(files)
             .set({
                 processing_status: "failed",
-                error_message: message.slice(0, 2000),
+                // Lấy phần cuối vì traceback (dấu vết các hàm đang chạy khi lỗi)
+                // của Python nằm sau log tiến độ.
+                error_message: message.slice(-2000),
             })
             .where(eq(files.id, fileId));
 
@@ -378,5 +441,7 @@ export async function POST(
             { fileId, processingStatus: "failed", error: message },
             { status: 500 },
         );
+    } finally {
+        finishJob(fileId, job);
     }
 }
