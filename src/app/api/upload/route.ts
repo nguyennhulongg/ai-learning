@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { db } from '@/db';
 import { files } from '@/db/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { createHash } from 'node:crypto';
+import { and, eq } from 'drizzle-orm';
 import { UPLOAD_PURPOSE } from '@/constants/files';
 import { UploadResponse } from '@/features/upload/upload.types';
 
@@ -68,6 +70,30 @@ export async function POST(req: Request) {
     const filePath = `uploads/${fileName}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const contentHash = createHash('sha256').update(buffer).digest('hex');
+
+    // Chặn tài liệu trùng trước khi upload, để không tốn Storage, OCR hay lượt gọi AI.
+    // Trả 200 kèm duplicateOf thay vì mã lỗi, vì trùng file là tình huống bình thường.
+    if (purpose === UPLOAD_PURPOSE.KNOWLEDGE_BASE) {
+      const [existing] = await db
+        .select({ id: files.id, file_name: files.file_name })
+        .from(files)
+        .where(and(eq(files.content_hash, contentHash), eq(files.purpose, purpose)))
+        .limit(1);
+
+      if (existing) {
+        return NextResponse.json<UploadResponse>({
+          fileId: existing.id,
+          purpose,
+          path: '',
+          signedUrl: null,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          duplicateOf: existing.file_name,
+        });
+      }
+    }
 
     const { data, error: uploadError } = await supabase.storage
       .from('files-upload')
@@ -93,6 +119,7 @@ export async function POST(req: Request) {
         bucket_name: "files-upload",
         mime_type: file.type || "application/octet-stream",
         file_size: file.size,
+        content_hash: contentHash,
         status: "uploaded",
         purpose,
         processing_status:

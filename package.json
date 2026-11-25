@@ -9,7 +9,8 @@
     "lint": "eslint",
     "import:companies": "tsx --env-file=.env.local scripts/import-companies.ts",
     "import:sectors": "tsx --env-file=.env.local scripts/import-company-sectors.ts",
-    "import:industries": "tsx --env-file=.env.local scripts/import-company-industries.ts"
+    "import:industries": "tsx --env-file=.env.local scripts/import-company-industries.ts",
+    "backfill:hashes": "tsx --env-file=.env.local scripts/backfill-file-hashes.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.93",

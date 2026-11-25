@@ -7,6 +7,8 @@ const MAX_LENGTH = 120;
 const ERROR_SUMMARIES: [RegExp, string][] = [
   [/api.?key|unauthori[sz]ed|permission denied/i, "API key của AI không hợp lệ."],
   [/abort/i, "Đã huỷ xử lý."],
+  // Máy chủ AI quá tải (HTTP 503): lỗi tạm thời phía Google, không phải hết hạn mức.
+  [/high demand|overloaded|unavailable|\b503\b/i, "AI đang quá tải, hãy bấm thử lại sau ít phút."],
   [/failed query|database|postgres/i, "Lỗi cơ sở dữ liệu, hãy thử lại."],
   [/network|fetch failed|econn|etimedout|socket|timeout/i, "Lỗi kết nối, hãy thử lại."],
   [/traceback|tesseract|python|pymupdf/i, "Không đọc được nội dung file PDF."],

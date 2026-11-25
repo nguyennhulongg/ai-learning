@@ -1,0 +1,1 @@
+ALTER TABLE "financial_facts" ADD COLUMN "line_code" varchar(10);

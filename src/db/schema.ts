@@ -53,6 +53,10 @@ export const files = pgTable("files", {
   mime_type: varchar("mime_type", { length: 255 }).notNull(),
   file_size: bigint("file_size", { mode: "number" }),
 
+  // Mã băm SHA-256 của nội dung file: chuỗi 64 ký tự, hai file giống hệt nhau có cùng mã
+  // dù tên khác. Dùng để chặn upload trùng. NULL với file upload trước khi có cột này.
+  content_hash: varchar("content_hash", { length: 64 }),
+
   // Trạng thái upload và lưu trữ file
   status: varchar("status", { length: 30 })
     .notNull()
@@ -85,9 +89,10 @@ export const files = pgTable("files", {
   updated_at: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-
-
-});
+}, (table) => [
+  // Index thường, không unique, vì DB đang có sẵn vài file trùng từ trước khi có cột này.
+  index("files_content_hash_idx").on(table.content_hash),
+]);
 
 // bảng này lưu thông tin nội dung đã được OCR từ file
 // Tại sao vẫn cần content_json nếu đã có Markdown ?
@@ -267,8 +272,14 @@ export const financialFacts = pgTable(
     // cash_flow: lưu chuyển tiền tệ; ratio: chỉ số do nguồn dữ liệu cung cấp
     statement: varchar("statement", { length: 30 }).notNull(),
 
-    // Mã chuẩn hoá, ví dụ "net_profit", vì mỗi công ty ghi tên chỉ tiêu một kiểu
+    // Mã chuẩn hoá, ví dụ "net_profit", vì mỗi công ty ghi tên chỉ tiêu một kiểu.
+    // Dòng không thuộc danh mục chuẩn dùng mã theo dòng, ví dụ "bs_318" là dòng mã số 318
+    // trên bảng cân đối; báo cáo không có cột Mã số (ngân hàng) thì dùng tên dòng không dấu.
     metric_code: varchar("metric_code", { length: 64 }).notNull(),
+
+    // Mã số của dòng như in trong cột "Mã số", ví dụ "318" hoặc "421a".
+    // NULL khi báo cáo không có cột này hoặc OCR đọc hỏng mã.
+    line_code: varchar("line_code", { length: 10 }),
 
     // Tên gốc trong báo cáo, giữ lại để đối chiếu khi chuẩn hoá sai
     source_label: text("source_label"),
@@ -288,16 +299,27 @@ export const financialFacts = pgTable(
     // True khi số đã qua kiểm tra, ví dụ phép tính cân hoặc khớp với nguồn khác
     is_verified: boolean("is_verified").notNull().default(false),
 
+    // True với số đầu năm của bảng cân đối (cột "01/01/2026" trong báo cáo quý 3/2026).
+    // Số đầu năm in trong báo cáo kỳ này là số đã trình bày lại nếu công ty phân loại lại,
+    // nên có thể khác số cuối năm trước in trong báo cáo năm trước.
+    is_opening: boolean("is_opening").notNull().default(false),
+
+    // Mã mục thuyết minh in ở cột "Thuyết minh" của dòng, ví dụ "VI.3".
+    // OCR hay đọc sai mã này (ví dụ "V1.3"), nên chỉ dùng để tham khảo, không dùng để tra mục.
+    note_ref: varchar("note_ref", { length: 20 }),
+
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
   },
   (table) => [
-    // Có source để cùng một chỉ tiêu từ 2 nguồn nằm cạnh nhau mà đối chiếu
+    // Có source để cùng một chỉ tiêu từ 2 nguồn nằm cạnh nhau mà đối chiếu;
+    // có is_opening để số cuối kỳ và số đầu năm của cùng một dòng cùng tồn tại.
     uniqueIndex("financial_facts_report_metric_source_uidx").on(
       table.report_id,
       table.metric_code,
       table.source,
+      table.is_opening,
     ),
     // Index giúp DB tìm nhanh hơn, cần khi so sánh một chỉ tiêu giữa nhiều công ty
     index("financial_facts_metric_code_idx").on(table.metric_code),

@@ -137,6 +137,16 @@ export default function DocumentUploadModal({ open, onClose }: DocumentUploadMod
     />
   );
 
+  // Chạy lại bước trích số cho file đã xử lý xong, ví dụ sau khi cách trích số được nâng cấp.
+  // Dùng lại nội dung OCR đã lưu nên không phải upload hay OCR lại.
+  const reextractAction = (document: DocumentRecord) => (
+    <IconAction
+      label="Trích lại số liệu"
+      icon={<AiOutlineReload size={16} />}
+      onClick={() => queue.retryDocument(document)}
+    />
+  );
+
   const activeRows = [
     ...activeItems.map((item) => {
       // Đã lên server thì dùng tiến độ server gửi về, còn lại dùng tiến độ trên trình duyệt.
@@ -184,7 +194,12 @@ export default function DocumentUploadModal({ open, onClose }: DocumentUploadMod
       key={document.id}
       name={document.file_name}
       description={describeSuccess(document)}
-      actions={deleteAction(document)}
+      actions={
+        <>
+          {reextractAction(document)}
+          {deleteAction(document)}
+        </>
+      }
     />
   ));
 
@@ -193,7 +208,12 @@ export default function DocumentUploadModal({ open, onClose }: DocumentUploadMod
       key={document.id}
       name={document.file_name}
       description={CONTENT_ONLY_DESCRIPTION}
-      actions={deleteAction(document)}
+      actions={
+        <>
+          {reextractAction(document)}
+          {deleteAction(document)}
+        </>
+      }
     />
   ));
 

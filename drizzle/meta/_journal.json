@@ -43,6 +43,27 @@
       "when": 1793980195338,
       "tag": "0005_add_company_sector",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795535875657,
+      "tag": "0006_add_file_content_hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795539697912,
+      "tag": "0007_add_fact_line_code",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795543267511,
+      "tag": "0008_add_fact_opening_and_note_ref",
+      "breakpoints": true
     }
   ]
 }

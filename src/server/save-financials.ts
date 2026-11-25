@@ -37,12 +37,15 @@ function toRow(fact: ExtractedFact, reportId: string) {
     report_id: reportId,
     statement: fact.statement,
     metric_code: fact.metric_code,
+    line_code: fact.line_code,
     source_label: fact.source_label,
     value: fact.value,
     unit: fact.unit,
     source: SOURCE,
     source_page: fact.source_page,
     is_verified: fact.is_verified,
+    is_opening: fact.is_opening,
+    note_ref: fact.note_ref,
   };
 }
 
@@ -126,18 +129,25 @@ async function saveFacts(report: Report, facts: ExtractedFact[]) {
     for (const group of groups) {
       if (group.facts.length === 0) continue;
 
-      await tx
-        .delete(financialFacts)
-        .where(
-          and(
-            eq(financialFacts.report_id, group.reportId),
-            eq(financialFacts.source, SOURCE),
-            inArray(
-              financialFacts.metric_code,
-              group.facts.map((fact) => fact.metric_code),
+      // Xoá riêng số cuối kỳ và số đầu năm: lần trích mới chỉ có số cuối kỳ của một dòng
+      // thì số đầu năm đã lưu của dòng đó vẫn được giữ.
+      for (const isOpening of [false, true]) {
+        const codes = group.facts
+          .filter((fact) => fact.is_opening === isOpening)
+          .map((fact) => fact.metric_code);
+        if (codes.length === 0) continue;
+
+        await tx
+          .delete(financialFacts)
+          .where(
+            and(
+              eq(financialFacts.report_id, group.reportId),
+              eq(financialFacts.source, SOURCE),
+              eq(financialFacts.is_opening, isOpening),
+              inArray(financialFacts.metric_code, codes),
             ),
-          ),
-        );
+          );
+      }
 
       await tx
         .insert(financialFacts)

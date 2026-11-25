@@ -1,14 +1,57 @@
-import { streamText, convertToModelMessages } from "ai";
+import { streamText, convertToModelMessages, isStepCount, type UIMessage } from "ai";
 import { createGroq } from "@ai-sdk/groq";
-import { DoclingClient } from '@docling/docling-client';
+
+import { financialTools } from "@/tools/financials";
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
-export const maxDuration = 30;
+// Gọi nhiều tool liên tiếp mất thời gian hơn một câu trả lời thường.
+export const maxDuration = 60;
+
+// Số tin nhắn gần nhất gửi kèm, đủ để hiểu ngữ cảnh mà không vượt giới hạn token.
+const HISTORY_LIMIT = 12;
+
+// Số bước tối đa trong một lượt trả lời. Mỗi bước, model gọi tool hoặc viết câu trả lời;
+// giới hạn này chặn vòng lặp gọi tool vô tận.
+const MAX_STEPS = 6;
+
+const SYSTEM_PROMPT = `Bạn là trợ lý phân tích báo cáo tài chính doanh nghiệp niêm yết Việt Nam. Trả lời bằng ngôn ngữ của người dùng.
+
+Quy tắc về số liệu:
+- Mọi con số phải lấy từ tool. Không tự nhớ, không ước lượng, không tự tính kể cả phép trừ hay phần trăm; cần chỉ số thì gọi calculateRatios, so sánh các kỳ thì gọi comparePeriods.
+- Người dùng nêu tên công ty thì gọi findCompanies để lấy mã trước.
+- getFinancials chỉ có các chỉ tiêu chính. Chỉ tiêu khác (ví dụ doanh thu chưa thực hiện, phải thu, chi phí trả trước) thì gọi searchLineItems; chỉ nói "không có" sau khi đã thử vài từ khoá khác nhau.
+- Tool báo chưa có dữ liệu thì nói rõ là chưa có, kèm các kỳ đang có, và gợi ý upload file PDF báo cáo. Không thay bằng số của kỳ khác.
+- Phân biệt rõ số của một quý với số luỹ kế cả năm, và báo cáo hợp nhất với báo cáo công ty mẹ.
+- Ghi đơn vị (tỷ đồng) và trích nguồn ở cuối câu trả lời theo dạng: Nguồn: tên file, trang N.
+- value là số đã đổi sang tỷ đồng và làm tròn; exact (hoặc exactValues) là số đúng như in trong báo cáo. Bảng số liệu có cột "Tỷ đồng" lấy từ value và cột "Số trong báo cáo" chép nguyên exact, để người dùng đối chiếu với PDF. Không tự làm tròn hay đổi đơn vị của exact.
+- Số có verified=false là số máy đọc từ PDF chưa được đối chiếu; nhắc người dùng điều này một lần khi dùng các số đó.
+- Chỉ so sánh với số liệu có trong kết quả tool. Không so với con số bạn tự nhớ, kể cả số "thường thấy" của công ty.
+- Đọc kỹ trường warnings trong kết quả tool và nêu lại cho người dùng.
+
+Số đầu năm và thuyết minh:
+- Dòng bảng cân đối có trường opening là số đầu năm tài chính in trong báo cáo kỳ này, opening.change là thay đổi từ đầu năm đã tính sẵn. Hỏi thay đổi từ đầu năm thì dùng opening.change, không lấy số cuối năm trước từ báo cáo năm trước, vì số đầu năm có thể đã được phân loại lại.
+- Người dùng hỏi chi tiết, thành phần, lý do tăng giảm của một dòng thì gọi readNotes với tên dòng hoặc tên mục làm từ khoá. Trường note (ví dụ "VI.3") cho biết dòng có mục thuyết minh riêng; có thể nhắc mã này cho người dùng. Không thấy gì thì thử từ khoá ngắn hơn hoặc một tiêu đề trong headings.
+- Đoạn thuyết minh là văn bản OCR có thể sai chữ, sai số hoặc lệch cột. Chỉ trích số đọc rõ ràng, ghi trang, không tự cộng trừ các số trong đó, và không đoán phần bị hỏng.
+- Không tự suy đoán lý do biến động (ví dụ "có thể do cho vay..."). Lý do chỉ lấy từ thuyết minh; đã gọi readNotes mà không có thì nói thuyết minh không giải thích.
+
+Không đưa tên trường kỹ thuật (opening.change, verified, bs_210, metric...) vào câu trả lời; diễn đạt bằng lời, ví dụ "số đầu năm", "chưa được đối chiếu tự động". Mã thuyết minh như "VI.3" thì được nhắc.
+
+Trình bày: tóm tắt ngắn trước, bảng số liệu sau nếu có nhiều chỉ tiêu, rồi nhận xét ngắn.`;
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     const msg = err.message;
+
+    // Giới hạn token theo thời gian của gói miễn phí: không phải tin nhắn quá dài,
+    // chỉ cần chờ rồi gửi lại. Kiểm tra trước vì thông báo này cũng có cụm "Limit ... Requested".
+    if (msg.includes("tokens per minute")) {
+      const seconds = msg.match(/try again in ([\d.]+)s/i)?.[1];
+      const wait = seconds ? `khoảng ${Math.ceil(Number(seconds))} giây` : "vài giây";
+      return `Đã chạm giới hạn token mỗi phút của model AI. Vui lòng chờ ${wait} rồi gửi lại.`;
+    }
+    if (msg.includes("tokens per day"))
+      return "Đã hết hạn mức token trong ngày của model AI. Vui lòng thử lại vào ngày mai.";
 
     // Token/context quá dài — check trước vì Groq đôi khi trả "does not exist"
     // kèm theo "Request too large" hoặc "tokens per minute"
@@ -18,8 +61,6 @@ function getErrorMessage(err: unknown): string {
       msg.includes("too long") ||
       msg.includes("Request too large") ||
       msg.includes("reduce your message size") ||
-      msg.includes("tokens per minute") ||
-      msg.includes("tokens per day") ||
       /Requested \d+.*Limit \d+/i.test(msg) ||
       /Limit \d+.*Requested \d+/i.test(msg)
     ) {
@@ -44,25 +85,33 @@ function getErrorMessage(err: unknown): string {
 }
 
 
+// Giữ các tin gần nhất để model hiểu câu hỏi nối tiếp, ví dụ "còn quý 3 thì sao?".
+// Tin cũ chỉ giữ phần chữ: kết quả tool đã được tóm tắt trong câu trả lời,
+// gửi lại nguyên bảng số sẽ tốn token mà không thêm thông tin.
+function trimHistory(messages: UIMessage[]): UIMessage[] {
+  const recent = messages.slice(-HISTORY_LIMIT);
+  return recent.map((message, index) =>
+    index === recent.length - 1
+      ? message
+      : { ...message, parts: message.parts.filter((part) => part.type === "text") },
+  );
+}
+
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages }: { messages: UIMessage[] } = await req.json();
 
-    // Only send the last user message to avoid token limit issues
-    // This is a simple fix - for production, you'd want smarter context management
-    const lastUserMessage = messages.filter((m: { role: string }) => m.role === "user").slice(-1);
+    const recentMessages = trimHistory(messages);
 
     const result = streamText({
       model: groq(process.env.MODEL_GROQ ?? "llama-3.3-70b-versatile"),
-      messages: (await convertToModelMessages(lastUserMessage)).filter(
+      messages: (await convertToModelMessages(recentMessages)).filter(
         (m) => m.content !== undefined && m.content !== "" &&
           !(Array.isArray(m.content) && m.content.length === 0)
       ),
-      system:
-        "Bạn là một AI assistant hữu ích với khả năng tìm kiếm thông tin trong cơ sở dữ liệu. Sử dụng tool searchKnowledgeBase khi người dùng yêu cầu tìm kiếm thông tin cụ thể. KHÔNG sử dụng tool khi người dùng yêu cầu không tìm trong cơ sở dữ liệu. Trả lời bằng ngôn ngữ của người dùng.",
-      // tools: {
-      //   ...rag
-      // },
+      system: SYSTEM_PROMPT,
+      tools: financialTools,
+      stopWhen: isStepCount(MAX_STEPS),
     });
 
     return result.toUIMessageStreamResponse({
