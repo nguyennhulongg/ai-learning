@@ -89,6 +89,8 @@
   --border: rgba(252, 252, 252, 0.06);
   --marker-color: hsl(0 0% 62%);
   --border-horizontal-rule: rgba(252, 252, 252, 0.1);
+  /* Chữ gợi ý (placeholder) trong ô nhập: màu chữ chính giảm còn 50% độ đậm. */
+  --text-placeholder: color-mix(in oklab, var(--text-primary) 50%, transparent);
 
 }
 
@@ -193,4 +195,125 @@ body {
 
 .ant-btn>span {
   text-align: left !important;
+}
+/* ---------- Activity indicator (Thinking / tool đang chạy) ---------- */
+
+/* Shimmer = vệt sáng quét ngang chữ.
+   Cách làm: tô nền chữ bằng gradient (xám – trắng – xám), rồi background-clip: text
+   để nền chỉ hiện bên trong nét chữ (color: transparent). Animation dịch nền sang phải,
+   nên vệt trắng trông như chạy từ trái qua phải.
+   background-size 200% + nền lặp lại (repeat mặc định): dịch đúng 1 chu kỳ (-200%)
+   thì khung hình cuối trùng khung đầu → vòng lặp liền mạch, không giật. */
+.shimmer-text {
+  background-image: linear-gradient(
+    90deg,
+    rgba(252, 252, 252, 0.4) 0%,
+    rgba(252, 252, 252, 0.4) 35%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(252, 252, 252, 0.4) 65%,
+    rgba(252, 252, 252, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-sweep 2s linear infinite;
+}
+
+@keyframes shimmer-sweep {
+  from { background-position: 0% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Chữ mới hiện ra nhẹ nhàng khi thay thế chữ cũ. */
+.activity-label {
+  display: inline-block;
+  animation:
+    activity-in 180ms ease-out,
+    shimmer-sweep 2s linear infinite;
+}
+
+@keyframes activity-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Người dùng bật "giảm chuyển động" trong hệ điều hành → tắt animation, chữ đứng yên. */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-text,
+  .activity-label {
+    animation: none;
+    color: rgba(252, 252, 252, 0.6);
+  }
+}
+
+/* ---------- Ô nhập: bỏ viền, outline và vầng sáng khi focus ---------- */
+
+/* Áp cho mọi ô nhập: thẻ input/textarea thuần (ô prompt) và Input/Input.TextArea của antd.
+   - outline: vạch focus mặc định của trình duyệt.
+   - border: viền của antd (variant outlined).
+   - box-shadow: vầng sáng xanh antd vẽ quanh ô khi focus/hover.
+   font-family: inherit — antd tự đặt font riêng cho ô nhập, ép dùng lại Be Vietnam Pro của trang. */
+input,
+textarea,
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input:hover,
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper-focused,
+/* AutoComplete (bọc ô prompt) là một Select của antd: viền nằm ở thẻ bọc .ant-select. */
+.ant-select,
+.ant-select-focused,
+.ant-select:hover {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+/* Trong modal, ô nhập cùng màu nền với modal (--bg-surface-ai) nên khi mất viền sẽ chìm mất.
+   Thêm lớp nền trắng rất mờ để vẫn thấy được ranh giới ô.
+   Chỉ áp cho ô kiểu mặc định (outlined, ví dụ modal Đổi tên / Chia sẻ); ô đặt variant="borderless"
+   (như ô tìm kiếm) giữ nền trong suốt. Thẻ input nằm bên trong ô có icon không mang class outlined,
+   nên cũng không bị tô nền chồng hai lớp. */
+.ant-modal .ant-input-outlined {
+  background: rgba(252, 252, 252, 0.06) !important;
+}
+
+/* Ô tìm kiếm trong SearchModal: không nền, hoà vào nền modal giống Grok.
+   antd tô nền ở hai lớp (thẻ bọc có icon và thẻ input bên trong), nên ép cả hai. */
+.search-modal-input,
+.search-modal-input:hover,
+.search-modal-input:focus-within,
+.search-modal-input input {
+  background: transparent !important;
+}
+
+/* Màu placeholder chung cho MỌI ô nhập (ô prompt, ô sửa tin, ô tìm kiếm, ô trong modal).
+   Trước đây mỗi ô lấy màu từ một nơi: textarea thuần theo Tailwind, ô antd theo token của antd,
+   nên lệch nhau. Gom về một biến để chỉ cần đổi ở một chỗ. */
+input::placeholder,
+textarea::placeholder,
+.ant-input::placeholder,
+.ant-select input::placeholder,
+.ant-select textarea::placeholder,
+/* Select/AutoComplete của antd có thể vẽ placeholder bằng một thẻ span riêng thay vì thuộc tính placeholder. */
+.ant-select-placeholder {
+  color: var(--text-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Tooltip: cùng nền và viền với modal tìm kiếm (SearchModal).
+   Nền trùng màu trang (--bg-base) nên cần viền mờ để tooltip vẫn tách khỏi nền.
+   .ant-tooltip-container là thẻ antd tô nền; biến arrow-background-color là màu mũi tên (nếu có). */
+.ant-tooltip {
+  --ant-tooltip-arrow-background-color: var(--bg-base);
+}
+
+.ant-tooltip .ant-tooltip-container {
+  background-color: var(--bg-base) !important;
+  border: 1px solid rgba(252, 252, 252, 0.08);
+  color: var(--text-primary) !important;
 }

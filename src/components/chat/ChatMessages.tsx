@@ -3,51 +3,36 @@
 import { useEffect, useRef } from "react";
 import type { UIMessage } from "ai";
 import MessageBubble from "./MessageBubble";
-import { DoclingClient } from '@docling/docling-client';
-
-import ErrorBubble from "./ErrorBubble";
+import ActivityIndicator, { getActivityLabel } from "./ActivityIndicator";
 
 interface ChatMessagesProps {
   messages: UIMessage[];
   isLoading: boolean;
-  error?: string;
+  // Gọi khi người dùng sửa xong một tin của mình và bấm Send.
+  onEdit: (messageId: string, text: string) => void;
+  // Gọi khi bấm Thử lại trên một câu trả lời của AI.
+  onRetry: (messageId: string) => void;
 }
 
-function TypingIndicator() {
-  return (
-    <div className="flex gap-3">
-      <div
-        style={{ background: "#44444E", color: "#D3DAD9" }}
-        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
-      >
-        AI
-      </div>
-      <div
-        style={{ background: "#44444E" }}
-        className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5"
-      >
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            style={{ background: "#D3DAD9", animationDelay: `${i * 0.15}s` }}
-            className="w-2 h-2 rounded-full animate-bounce"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
+// Vẽ danh sách tin nhắn + dòng trạng thái (Thinking / tool đang chạy) ở cuối.
 export default function ChatMessages({
   messages,
   isLoading,
-  error,
+  onEdit,
+  onRetry,
 }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // null = không hiện gì; ngược lại là nhãn đang hiển thị, ví dụ "Thinking".
+  const activityLabel = getActivityLabel(messages, isLoading);
+  const lastMessageId = messages[messages.length - 1]?.id;
+  // Tin AI cuối cùng (không nhất thiết là tin cuối, ví dụ khi vừa gửi câu mới).
+  const lastAssistantId = messages.findLast((m) => m.role === "assistant")?.id;
+
+  // Cuộn xuống cuối khi có tin mới hoặc nhãn trạng thái đổi.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, activityLabel]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-14">
@@ -57,14 +42,17 @@ export default function ChatMessages({
             key={message.id}
             message={message}
             isStreaming={
-              status === "streaming" &&
+              isLoading &&
               message.role === "assistant" &&
-              message.id === messages[messages.length - 1]?.id
+              message.id === lastMessageId
             }
+            onEdit={onEdit}
+            onRetry={onRetry}
+            canAct={!isLoading}
+            isLastAssistant={message.id === lastAssistantId}
           />
         ))}
-        {isLoading && <TypingIndicator />}
-        {error && <ErrorBubble message={error} />}
+        {activityLabel && <ActivityIndicator label={activityLabel} />}
         <div ref={bottomRef} />
       </div>
     </div>

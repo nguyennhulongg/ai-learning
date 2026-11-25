@@ -5,6 +5,8 @@ import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import type { UIMessage } from "ai";
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
+import MessageActions from "./MessageActions";
+import UserMessageEditor from "./UserMessageEditor";
 
 export type SearchKnowledgeBasePart = {
   type: "tool-searchKnowledgeBase";
@@ -24,9 +26,29 @@ function isSearchKnowledgePart(
   return part.type === "tool-searchKnowledgeBase";
 }
 
+// Part lỗi do client tự thêm khi request hỏng (hết quota, mất mạng...), xem ChatLayout.
+// "data-*" là loại part tùy chỉnh của AI SDK; convertToModelMessages bỏ qua nó,
+// nên lỗi hiện trên UI nhưng không bị gửi cho model như một câu trả lời.
+export type ErrorDataPart = {
+  type: "data-error";
+  data: { message: string };
+};
+
+function isErrorPart(part: { type: string }): part is ErrorDataPart {
+  return part.type === "data-error";
+}
+
 type MessageBubbleProps = {
   message: UIMessage;
   isStreaming?: boolean;
+  // Sửa tin của người dùng: gửi lại với nội dung mới. Không truyền = không cho sửa.
+  onEdit?: (messageId: string, text: string) => void;
+  // Tạo lại câu trả lời của AI (tin assistant). Không truyền = không có nút Thử lại.
+  onRetry?: (messageId: string) => void;
+  // false khi AI đang trả lời: khóa nút Sửa / Thử lại.
+  canAct?: boolean;
+  // Tin cuối cùng của AI thì hàng nút luôn hiện, các tin cũ hơn chỉ hiện khi rê chuột.
+  isLastAssistant?: boolean;
 };
 
 const MAX_LENGTH_FOR_PREVIEW = 200;
@@ -34,22 +56,59 @@ const MAX_LENGTH_FOR_PREVIEW = 200;
 export default function MessageBubble({
   message,
   isStreaming = false,
+  onEdit,
+  onRetry,
+  canAct = true,
+  isLastAssistant = false,
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const textContent = message.parts
     .filter((part) => part.type === "text")
     .map((part) => (part.type === "text" ? part.text : ""))
     .join("");
 
+  // Nội dung để chép: chữ của tin nhắn, hoặc câu báo lỗi nếu đây là tin lỗi.
+  const copyText =
+    textContent ||
+    message.parts
+      .filter(isErrorPart)
+      .map((part) => part.data.message)
+      .join("\n");
+
   const isLongMessage =
     isUser && textContent.length > MAX_LENGTH_FOR_PREVIEW;
 
   const shouldCollapse = isLongMessage && !isExpanded;
 
+  // Tin AI lúc mới chỉ có part tool/step-start (chưa có chữ) → không vẽ khung rỗng,
+  // để ActivityIndicator nằm sát tin nhắn phía trên thay vì cách một khoảng trống.
+  const hasVisibleContent = message.parts.some(
+    (part) =>
+      (part.type === "text" && part.text) || isSearchKnowledgePart(part) || isErrorPart(part),
+  );
+  if (!isUser && !hasVisibleContent) return null;
+
+  // Đang sửa: thay cả bong bóng bằng khung soạn.
+  if (isUser && isEditing) {
+    return (
+      <UserMessageEditor
+        initialText={textContent}
+        onCancel={() => setIsEditing(false)}
+        onSubmit={(text) => {
+          setIsEditing(false);
+          onEdit?.(message.id, text);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+    // Xếp dọc: bong bóng ở trên, hàng nút ngay dưới. Người dùng canh phải, AI canh trái.
+    // "group": cho phép MessageActions hiện ra khi rê chuột vào bất kỳ đâu trên tin nhắn này.
+    <div className={`group flex flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}>
       <div
         style={
           isUser
@@ -166,6 +225,14 @@ export default function MessageBubble({
             );
           }
 
+          if (isErrorPart(part)) {
+            return (
+              <p key={i} className="whitespace-pre-wrap wrap-break-word">
+                {part.data.message}
+              </p>
+            );
+          }
+
           if (
             part.type.startsWith("tool-") &&
             isSearchKnowledgePart(part)
@@ -183,6 +250,17 @@ export default function MessageBubble({
           return null;
         })}
       </div>
+      {/* Đang stream thì chưa hiện nút: câu trả lời chưa xong, chép hay thử lại đều vô nghĩa. */}
+      {!isStreaming && (
+        <MessageActions
+          text={copyText}
+          align={isUser ? "end" : "start"}
+          canAct={canAct}
+          alwaysVisible={!isUser && isLastAssistant}
+          onEdit={isUser && onEdit ? () => setIsEditing(true) : undefined}
+          onRetry={!isUser && onRetry ? () => onRetry(message.id) : undefined}
+        />
+      )}
     </div>
   );
 }

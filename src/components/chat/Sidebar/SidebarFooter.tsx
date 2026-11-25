@@ -1,11 +1,17 @@
 import { Button } from "antd";
 
-export default function SidebarFooter() {
+interface SidebarFooterProps {
+  // Thanh bên thu gọn: chỉ còn avatar, ẩn tên.
+  collapsed?: boolean;
+}
+
+// Phần chân thanh bên: avatar và tên người dùng.
+export default function SidebarFooter({ collapsed = false }: SidebarFooterProps) {
   return (
-    <div className="p-3 shrink-0">
+    <div className={`shrink-0 ${collapsed ? "py-3 flex justify-center" : "p-3"}`}>
       <Button
         type="text"
-        style={{ color: "var(--text-primary)", width: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "8px" }}
+        style={{ color: "var(--text-primary)", width: collapsed ? "auto" : "100%", display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "8px" }}
         className="hover:bg-white/5"
       >
         <div
@@ -14,7 +20,7 @@ export default function SidebarFooter() {
         >
           U
         </div>
-        <span className="truncate">Người dùng</span>
+        {!collapsed && <span className="truncate">Người dùng</span>}
       </Button>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDeleteSession, usePinSession, useUpdateSession } from "@/features/sessions/sessions.mutations";
 import type { Conversation } from "@/types/chat";
 import { Button, ConfigProvider, theme } from "antd";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { POPOVER_OPTIONS, SOCIAL_SHARE_URLS } from "@/constants/sidebar";
 import ConversationItem from "./Sidebar/ConversationItem";
 import ShareModal from "./Sidebar/ShareModal";
@@ -12,8 +13,18 @@ import RenameModal from "./Sidebar/RenameModal";
 import DocumentUploadModal from "./Sidebar/DocumentUploadModal";
 import SidebarHeader from "./Sidebar/SidebarHeader";
 import SidebarFooter from "./Sidebar/SidebarFooter";
+import SearchModal from "./Sidebar/SearchModal";
 import { createStaticStyles } from "antd-style";
 import { AiOutlineDown, AiOutlineUpload } from "react-icons/ai";
+
+// Bề rộng thanh bên trên desktop (px).
+const DEFAULT_WIDTH = 256;
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 420;
+// Bề rộng dải icon khi thu gọn.
+const RAIL_WIDTH = 60;
+// Kéo hẹp hơn mức này thì thu gọn thành dải icon (giống VS Code / Grok).
+const COLLAPSE_THRESHOLD = 150;
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -67,6 +78,76 @@ export default function Sidebar({
   const [documentSectionOpen, setDocumentSectionOpen] = useState(true);
   const [chatsSectionOpen, setChatsSectionOpen] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  // Thu gọn thành dải icon hẹp. Chỉ áp dụng trên desktop; mobile dùng isOpen (trượt ra/vào).
+  const [collapsed, setCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  // Bề rộng khi mở rộng (desktop), đổi được bằng cách kéo mép phải.
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  // Đang kéo thì tắt hiệu ứng chuyển động bề rộng, để thanh bên bám theo chuột ngay, không bị trễ.
+  const [isResizing, setIsResizing] = useState(false);
+  // Hàm gỡ các listener của lần kéo đang diễn ra; dùng khi component bị gỡ giữa lúc kéo.
+  const stopResizeRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopResizeRef.current?.(), []);
+
+  // Phím tắt Ctrl+K (⌘+K trên Mac) mở modal tìm kiếm ở bất kỳ đâu trên trang.
+  // preventDefault: chặn hành vi mặc định của trình duyệt (Chrome dùng Ctrl+K để tìm trên thanh địa chỉ).
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Desktop = rộng từ 1024px, trùng mốc lg: của Tailwind dùng trong className bên dưới.
+  const isDesktop = useIsDesktop();
+  const showRail = isDesktop && collapsed;
+
+  // Bắt đầu kéo mép phải thanh bên.
+  // Cách làm: ghi lại vị trí chuột và bề rộng lúc bấm; mỗi lần chuột di chuyển,
+  // bề rộng mới = bề rộng ban đầu + quãng chuột đã đi theo chiều ngang.
+  // Lắng nghe trên window (không phải trên mép) để chuột chạy ra ngoài mép vẫn kéo tiếp được.
+  const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = showRail ? RAIL_WIDTH : width;
+    setIsResizing(true);
+    // Giữ con trỏ col-resize và chặn bôi đen chữ trong lúc kéo, kể cả khi chuột rời khỏi mép.
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const handleMove = (ev: PointerEvent) => {
+      const next = startWidth + (ev.clientX - startX);
+      if (next < COLLAPSE_THRESHOLD) {
+        setCollapsed(true);
+      } else {
+        setCollapsed(false);
+        setWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, next)));
+      }
+    };
+
+    const stop = () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", stop);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setIsResizing(false);
+      stopResizeRef.current = null;
+    };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", stop);
+    stopResizeRef.current = stop;
+  };
+
+  // Nút thu gọn/mở rộng: desktop thì đổi giữa đầy đủ ↔ dải icon; mobile thì đóng lớp trượt.
+  const handleToggle = () => {
+    if (isDesktop) setCollapsed((prev) => !prev);
+    else onClose();
+  };
 
   const deleteMutation = useDeleteSession();
   const updateMutation = useUpdateSession();
@@ -144,15 +225,52 @@ export default function Sidebar({
           />
         )}
 
+        {/* Mobile: thanh bên nằm đè (fixed), trượt ra/vào bằng translate.
+            Desktop: nằm cạnh khung chat (static), đổi bề rộng 256px ↔ 60px; transition-[width] làm hiệu ứng kéo ra/vào.
+            overflow-hidden: trong lúc thu hẹp, phần chữ bị cắt gọn thay vì tràn ra ngoài. */}
+        {/* Bề rộng: mobile cố định w-64; desktop lấy từ state (kéo được), thu gọn thì RAIL_WIDTH.
+            lg:relative để mép kéo (absolute) bám vào cạnh phải của thanh bên. */}
         <aside
-          style={{ background: "var(--bg-sidebar)" }}
-          className={`fixed lg:static inset-y-0 left-0 z-30 w-64 flex flex-col
-            transition-transform duration-200
+          style={{
+            // Cùng màu nền với khung chat; ngăn cách bằng viền phải, màu --border dùng chung trong dự án.
+            background: "var(--bg-base)",
+            borderRight: "1px solid var(--border)",
+            ...(isDesktop ? { width: showRail ? RAIL_WIDTH : width } : {}),
+          }}
+          className={`fixed lg:relative inset-y-0 left-0 z-30 flex flex-col shrink-0 overflow-hidden w-64
+            ${isResizing ? "" : "transition-[width,transform] duration-200 ease-out"}
             ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
         >
-          <SidebarHeader onNewChat={onNew} />
+          {/* Mép kéo: dải 6px trong suốt ở cạnh phải, rê chuột vào thì chỉ đổi con trỏ thành ↔.
+              Chỉ có trên desktop; mobile thanh bên là lớp trượt nên không cần kéo. */}
+          {isDesktop && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Kéo để đổi bề rộng thanh bên"
+              onPointerDown={handleResizeStart}
+              className="absolute top-0 right-0 z-10 h-full w-1.5 cursor-col-resize"
+            />
+          )}
+          <SidebarHeader
+            collapsed={showRail}
+            onToggle={handleToggle}
+            onNewChat={onNew}
+            onUpload={() => setUploadModalOpen(true)}
+            onSearch={() => setSearchOpen(true)}
+          />
 
-          <div className="flex-1 overflow-y-auto">
+          {/* Thu gọn thì KHÔNG render danh sách, chỉ để lại khoảng trống đẩy avatar xuống đáy.
+              Không dùng class invisible (visibility: hidden): nút antd có sẵn transition: all 0.2s,
+              nên visibility cũng bị "chuyển động" → nút còn hiện thêm 0.2s rồi mới mất, trông như nháy.
+              Bề rộng cố định bằng bề rộng mở rộng: lúc thanh bên đang giãn ra (hiệu ứng), chữ không bị dồn dòng. */}
+          {showRail ? (
+            <div className="flex-1" />
+          ) : (
+          <div
+            style={isDesktop ? { width } : undefined}
+            className="flex-1 overflow-y-auto w-64"
+          >
             <Button
               classNames={titleButtonClassNames}
               type="link"
@@ -243,35 +361,19 @@ export default function Sidebar({
               </nav>
             )}
           </div>
+          )}
 
-          <Button onClick={async () => {
-            const formData = new FormData();
-
-            formData.append("files", new File([], "src/constants/page_72.pdf"));
-            formData.append("to_formats", "json");
-            formData.append("do_ocr", "true");
-
-            const response = await fetch(
-              "http://127.0.0.1:5001/v1/convert/file",
-              {
-                method: "POST",
-                body: formData,
-              },
-            );
-
-            if (!response.ok) {
-              throw new Error(
-                `Docling failed: ${response.status} ${await response.text()}`,
-              );
-            }
-
-            return response.json();
-          }}>
-            Button
-          </Button>
-
-          <SidebarFooter />
+          <SidebarFooter collapsed={showRail} />
         </aside>
+
+        <SearchModal
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          conversations={conversations}
+          onSelectConversation={onSelect}
+          onNewChat={onNew}
+          onUpload={() => setUploadModalOpen(true)}
+        />
 
         <DocumentUploadModal
           open={uploadModalOpen}

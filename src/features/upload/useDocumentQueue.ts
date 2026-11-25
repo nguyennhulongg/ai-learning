@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { suggestionsKeys } from "@/features/suggestions/suggestions.keys";
 import axios from "axios";
 
 import { UPLOAD_PURPOSE } from "@/constants/files";
@@ -76,9 +77,13 @@ export function useDocumentQueue(enabled: boolean) {
 
   // Tải lại danh sách tài liệu từ server. Sự kiện SSE và hàng đợi cùng gọi hàm này khi một file
   // xong, nên cancelRefetch: false giữ request đang chạy thay vì huỷ nó để gửi request mới.
+  // Đồng thời làm mới danh mục gợi ý ở ô nhập, vì file vừa xử lý xong có thể thêm mã/kỳ báo cáo mới.
   const refreshDocuments = useCallback(
     () =>
-      queryClient.invalidateQueries({ queryKey: DOCUMENTS_KEY }, { cancelRefetch: false }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: DOCUMENTS_KEY }, { cancelRefetch: false }),
+        queryClient.invalidateQueries({ queryKey: suggestionsKeys.catalog() }, { cancelRefetch: false }),
+      ]),
     [queryClient],
   );
 
@@ -157,6 +162,11 @@ export function useDocumentQueue(enabled: boolean) {
           (percent) => updateItem(id, { progress: uploadProgress(percent) }),
           signal,
         );
+
+        // Ném lỗi để file trùng chuyển sang tab Thất bại kèm lý do.
+        if (uploaded.duplicateOf) {
+          throw new Error(`Đã có file cùng nội dung: ${uploaded.duplicateOf}`);
+        }
 
         updateItem(id, { phase: "processing", fileId: uploaded.fileId });
         await ocrProcessApi.process(uploaded.fileId).catch(ignoreServerError);

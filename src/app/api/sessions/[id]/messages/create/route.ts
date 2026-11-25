@@ -11,7 +11,14 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { role, content, parts } = body;
+    const { role, content, parts, id: clientId } = body;
+
+    // Dùng lại id mà useChat đã tạo ở client (nếu hợp lệ) để id trong DB khớp id trên giao diện.
+    // Nhờ vậy khi người dùng sửa một tin nhắn, server biết chính xác phải cắt từ dòng nào.
+    const messageId =
+      typeof clientId === "string" && clientId.length > 0 && clientId.length <= 36
+        ? clientId
+        : generateId();
 
     if (!role || !content) {
       return NextResponse.json(
@@ -23,7 +30,7 @@ export async function POST(
     const [newMessage] = await db
       .insert(messages)
       .values({
-        id: generateId(),
+        id: messageId,
         sessionId: id,
         role,
         content,

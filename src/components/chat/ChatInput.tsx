@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { Button, ConfigProvider, theme, UploadFile } from "antd";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { AutoComplete, Button, ConfigProvider, theme, UploadFile } from "antd";
+import { useSuggestionCatalog } from "@/features/suggestions/suggestions.queries";
+import { getInputSuggestions } from "@/features/suggestions/suggest";
 import FileCard from "./FileCard";
 import UploadButton from "./UploadButton";
 
@@ -17,10 +19,35 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Thẻ bọc textarea. AutoComplete ghi đè ref của textarea, nên tìm textarea qua thẻ bọc này.
+  const textareaWrapperRef = useRef<HTMLDivElement>(null);
 
+  // ----- Gợi ý khi gõ (mã cổ phiếu, kỳ báo cáo), lấy từ DB, không gọi AI -----
+  const { data: catalog } = useSuggestionCatalog();
+  const [isFocused, setIsFocused] = useState(false);
+  // Nội dung ô nhập lúc người dùng đóng danh sách (Esc, bấm ra ngoài).
+  // Giữ đóng cho tới khi họ gõ thêm, để danh sách không bật lại ngay lập tức.
+  const [dismissedText, setDismissedText] = useState<string | null>(null);
+
+  const suggestions = useMemo(() => getInputSuggestions(value, catalog), [value, catalog]);
+  const isSuggestOpen =
+    isFocused && !disabled && suggestions.length > 0 && dismissedText !== value;
+
+  // Mỗi gợi ý thành một option của AutoComplete.
+  // value = toàn bộ nội dung ô nhập sau khi chọn, nên chọn xong AutoComplete chỉ cần gọi onChange(value).
+  const suggestionOptions = suggestions.map((s) => ({
+    value: s.nextText,
+    label: (
+      <div className="flex items-baseline gap-2 min-w-0">
+        <span className="font-[550] shrink-0">{s.title}</span>
+        <span className="truncate text-xs opacity-60">{s.description}</span>
+      </div>
+    ),
+  }));
+
+  // Tự giãn chiều cao textarea theo nội dung, tối đa 160px rồi cuộn.
   useEffect(() => {
-    const el = textareaRef.current;
+    const el = textareaWrapperRef.current?.querySelector("textarea");
     if (!el) return;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 160) + "px";
@@ -33,7 +60,17 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     setValue("");
   };
 
+  // Phím trong ô nhập. Handler này chạy TRƯỚC handler của AutoComplete.
+  // Khi danh sách gợi ý đang mở: Enter/Tab để AutoComplete chọn gợi ý (không gửi tin),
+  // mũi tên lên/xuống để chọn dòng (chặn việc di chuyển con trỏ trong textarea).
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isSuggestOpen) {
+      if (e.key === "Enter" || e.key === "Tab") return;
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -52,6 +89,9 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           colorBgElevated: "var(--bg-surface-ai)",
           colorText: "var(--text-primary)",
           colorBgContainer: "var(--bg-surface-ai)",
+          // Nền dòng gợi ý khi rê chuột / đang được chọn bằng phím mũi tên.
+          controlItemBgHover: "rgba(252, 252, 252, 0.06)",
+          controlItemBgActive: "rgba(252, 252, 252, 0.1)",
         },
       }}
     >
@@ -103,23 +143,46 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
               />
             </div>
 
-            <textarea
-              ref={textareaRef}
-              rows={1}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Nhắn tin..."
-              disabled={disabled}
-              style={{
-                color: "var(--text-primary)",
-                gridArea: "textarea",
-              }}
-              className="w-full min-w-0 bg-transparent
-                resize-none
-                outline-none h-auto leading-relaxed disabled:opacity-50
-                text-[17px]"
-            />
+            <div
+              ref={textareaWrapperRef}
+              style={{ gridArea: "textarea" }}
+              className="min-w-0"
+            >
+              {/* AutoComplete bọc textarea có sẵn (customize input): giữ nguyên giao diện ô nhập,
+                  chỉ thêm danh sách gợi ý bật lên phía trên. open do mình tự tính (isSuggestOpen). */}
+              <AutoComplete
+                value={value}
+                onChange={(next: string) => setValue(next)}
+                options={suggestionOptions}
+                open={isSuggestOpen}
+                onOpenChange={(open) => {
+                  if (!open) setDismissedText(value);
+                }}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                // Tab/Enter chọn ngay dòng đầu, không cần bấm mũi tên trước.
+                defaultActiveFirstOption
+                // Ô nhập nằm sát đáy màn hình nên danh sách bật lên phía trên.
+                placement="topLeft"
+                popupMatchSelectWidth={360}
+                disabled={disabled}
+                // Bỏ viền + viền focus mà AutoComplete tự vẽ quanh ô nhập.
+                variant="borderless"
+                style={{ width: "100%" }}
+              >
+                <textarea
+                  rows={1}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Nhắn tin..."
+                  disabled={disabled}
+                  style={{ color: "var(--text-primary)" }}
+                  className="w-full min-w-0 bg-transparent
+                    resize-none
+                    outline-none h-auto leading-relaxed disabled:opacity-50
+                    text-[15px]"
+                />
+              </AutoComplete>
+            </div>
 
             <Button
               type="primary"
